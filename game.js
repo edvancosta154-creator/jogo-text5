@@ -1,6 +1,6 @@
 /**
  * RPG 2D - Arena dos Campeões (Mobile Optimized Edition)
- * Lógica do jogo, simulação procedural, controles por toque e renderização em Canvas
+ * Versão com Chefões Épicos de Final de Onda e Chapéus com Habilidades Especiais & VFX
  */
 
 /* ----------------------------------------------------
@@ -236,6 +236,63 @@ class SoundEngine {
         } catch(e) {}
     }
 
+    playBossAlert() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(110, now);
+            osc.frequency.linearRampToValueAtTime(330, now + 0.28);
+            osc.frequency.linearRampToValueAtTime(110, now + 0.55);
+            gain.gain.setValueAtTime(0.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.6);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.6);
+        } catch(e) {}
+    }
+
+    playBossSlam() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(90, now);
+            osc.frequency.exponentialRampToValueAtTime(25, now + 0.35);
+            gain.gain.setValueAtTime(0.4, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.35);
+        } catch(e) {}
+    }
+
+    playHolyChime() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const freqs = [587.33, 880, 1174.66, 1760];
+            freqs.forEach((f, i) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(f, now + i * 0.05);
+                gain.gain.setValueAtTime(0.22, now + i * 0.05);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + i * 0.05 + 0.5);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(now + i * 0.05);
+                osc.stop(now + i * 0.05 + 0.5);
+            });
+        } catch(e) {}
+    }
+
     playGameOver() {
         if (!this.enabled || !this.ctx) return;
         try {
@@ -279,21 +336,152 @@ function toggleFullscreen() {
 }
 
 /* ----------------------------------------------------
-   CATÁLOGO DE CHAPÉUS & ELMOS
+   CATÁLOGO DE CHAPÉUS COM PODERES E EFEITOS ESPECIAIS
 ---------------------------------------------------- */
 const SHOP_HATS = [
-    { id: 'hat_none', name: 'Nenhum Chapéu', price: 0, rarity: 'common', icon: '❌', desc: 'Estilo clássico e sem proteção na cabeça.', type: 'none' },
-    { id: 'hat_bandana', name: 'Bandana Shinobi', price: 60, rarity: 'common', icon: '🔴', desc: 'Faixa de guerreiro ninja com pontas esvoaçantes.', type: 'bandana', color: '#e74c3c' },
-    { id: 'hat_cowboy', name: 'Chapéu do Velho Oeste', price: 110, rarity: 'common', icon: '🤠', desc: 'Chapéu de couro resistente de pistoleiro.', type: 'cowboy', color: '#8d6e63' },
-    { id: 'hat_hood', name: 'Capuz das Sombras', price: 180, rarity: 'rare', icon: '👤', desc: 'Oculta o rosto revelando olhos espectrais luminosos.', type: 'hood', color: '#2c3e50' },
-    { id: 'hat_mage', name: 'Chapéu Arcano Estelar', price: 260, rarity: 'rare', icon: '🎩', desc: 'Chapéu pontudo de bruxo imbuído de mana cósmica.', type: 'wizard', color: '#6c5ce7' },
-    { id: 'hat_pirate', name: 'Bicórnio dos 7 Mares', price: 340, rarity: 'rare', icon: '🏴‍☠️', desc: 'Chapéu pirata elegante com caveira dourada e pluma.', type: 'pirate', color: '#1e272e' },
-    { id: 'hat_viking', name: 'Elmo Nórdico de Valhala', price: 450, rarity: 'epic', icon: '🪖', desc: 'Elmo de ferro forjado com grandes chifres ferozes.', type: 'viking', color: '#7f8c8d' },
-    { id: 'hat_cyber_visor', name: 'Visor Cyber Neon 2077', price: 600, rarity: 'epic', icon: '🥽', desc: 'Scanner holográfico com mira laser em tempo real.', type: 'visor', color: '#00cec9' },
-    { id: 'hat_samurai', name: 'Kabuto do Samurai Supremo', price: 750, rarity: 'epic', icon: '👹', desc: 'Elmo ancestral com meia-lua dourada e máscara.', type: 'samurai', color: '#b33939' },
-    { id: 'hat_demon', name: 'Chifres do Lorde Demoníaco', price: 900, rarity: 'legend', icon: '🔥', desc: 'Chifres ardentes que soltam brasas incandescentes.', type: 'demon', color: '#c0392b' },
-    { id: 'hat_halo', name: 'Auréola Celestial Divina', price: 1100, rarity: 'legend', icon: '👼', desc: 'Anel sagrado dourado flutuante com centelhas de luz.', type: 'halo', color: '#f1c40f' },
-    { id: 'hat_crown', name: 'Coroa Imperial de Ouro', price: 1400, rarity: 'legend', icon: '👑', desc: 'Cravejada de gemas reais e envolta em aura de glória.', type: 'crown', color: '#f1c40f' }
+    { 
+        id: 'hat_none', 
+        name: 'Nenhum Chapéu', 
+        price: 0, 
+        rarity: 'common', 
+        icon: '❌', 
+        desc: 'Estilo clássico e puro, sem alterações de atributos.', 
+        perkShort: 'Sem bônus',
+        perkDesc: 'Apenas a coragem e habilidade pura do seu herói na arena.',
+        type: 'none' 
+    },
+    { 
+        id: 'hat_bandana', 
+        name: 'Bandana Shinobi', 
+        price: 60, 
+        rarity: 'common', 
+        icon: '🔴', 
+        desc: 'Faixa de guerreiro ninja com rastro de vento veloz.', 
+        perkShort: '🏃 Vel +20% & Dash -35% CD',
+        perkDesc: '+20% de Velocidade de Movimento e a recarga da Esquiva (Dash) é 35% mais rápida.',
+        type: 'bandana', 
+        color: '#e74c3c' 
+    },
+    { 
+        id: 'hat_cowboy', 
+        name: 'Chapéu do Velho Oeste', 
+        price: 110, 
+        rarity: 'common', 
+        icon: '🤠', 
+        desc: 'Chapéu de couro de pistoleiro experiente.', 
+        perkShort: '🎯 Crítico +25% & Dano Crítico',
+        perkDesc: '+25% de Chance de Acerto Crítico e o dano crítico aumenta de 200% para 250%.',
+        type: 'cowboy', 
+        color: '#8d6e63' 
+    },
+    { 
+        id: 'hat_hood', 
+        name: 'Capuz das Sombras', 
+        price: 180, 
+        rarity: 'rare', 
+        icon: '👤', 
+        desc: 'Oculta o herói em névoa negra e olhos espectrais.', 
+        perkShort: '👤 Dash Furtivo & Golpe Fatal',
+        perkDesc: 'Ao usar o Dash, fica intangível por 1.2s e o próximo golpe causa +150% de dano mortal.',
+        type: 'hood', 
+        color: '#2c3e50' 
+    },
+    { 
+        id: 'hat_mage', 
+        name: 'Chapéu Arcano Estelar', 
+        price: 260, 
+        rarity: 'rare', 
+        icon: '🎩', 
+        desc: 'Chapéu de bruxo imbuído com anéis cósmicos.', 
+        perkShort: '🔮 Mana x2.5 & Orbes Estelares',
+        perkDesc: '+60 Max MP, regeneração de Mana dobrada e dispara periodicamente 2 orbes teleguiados nos inimigos.',
+        type: 'wizard', 
+        color: '#6c5ce7' 
+    },
+    { 
+        id: 'hat_pirate', 
+        name: 'Bicórnio dos 7 Mares', 
+        price: 340, 
+        rarity: 'rare', 
+        icon: '🏴‍☠️', 
+        desc: 'Chapéu de capitão pirata com caveira dourada.', 
+        perkShort: '🪙 +80% Ouro & Canhão Fantasma',
+        perkDesc: '+80% de Moedas coletadas e a cada 5s dispara uma bala de canhão fantasma que explode em área.',
+        type: 'pirate', 
+        color: '#1e272e' 
+    },
+    { 
+        id: 'hat_viking', 
+        name: 'Elmo Nórdico de Valhala', 
+        price: 450, 
+        rarity: 'epic', 
+        icon: '🪖', 
+        desc: 'Elmo de ferro forjado envolto em runas gélidas.', 
+        perkShort: '🛡️ +60 HP & Fúria Nórdica',
+        perkDesc: '+60 Max HP, +20% Redução de Dano. Se a vida cair abaixo de 40%, ganha +50% de Dano e +30% Vel. Ataque.',
+        type: 'viking', 
+        color: '#7f8c8d' 
+    },
+    { 
+        id: 'hat_cyber_visor', 
+        name: 'Visor Cyber Neon 2077', 
+        price: 600, 
+        rarity: 'epic', 
+        icon: '🥽', 
+        desc: 'Scanner holográfico com mira laser em tempo real.', 
+        perkShort: '🥽 Laser Tático & +30% Dano',
+        perkDesc: 'Projeta um feixe de mira laser cibernética no monstro mais próximo, +30% Dano e ataques atordoam brevemente.',
+        type: 'visor', 
+        color: '#00cec9' 
+    },
+    { 
+        id: 'hat_samurai', 
+        name: 'Kabuto do Samurai Supremo', 
+        price: 750, 
+        rarity: 'epic', 
+        icon: '👹', 
+        desc: 'Elmo com meia-lua dourada e lâminas de vento.', 
+        perkShort: '⚔️ Contra-Ataque Tempestuoso',
+        perkDesc: 'Ao receber qualquer dano de monstro, contra-ataca instantaneamente com um corte circular de vento de 360° em área.',
+        type: 'samurai', 
+        color: '#b33939' 
+    },
+    { 
+        id: 'hat_demon', 
+        name: 'Chifres do Lorde Demoníaco', 
+        price: 900, 
+        rarity: 'legend', 
+        icon: '🔥', 
+        desc: 'Chifres ardentes que soltam brasas incandescentes.', 
+        perkShort: '🔥 Aura Infernal 35 DPS & +35% Dmg',
+        perkDesc: 'Aura contínua de fogo: queima todos os monstros ao seu redor causando 35 de dano por segundo e +35% Dano base.',
+        type: 'demon', 
+        color: '#c0392b' 
+    },
+    { 
+        id: 'hat_halo', 
+        name: 'Auréola Celestial Divina', 
+        price: 1100, 
+        rarity: 'legend', 
+        icon: '👼', 
+        desc: 'Anel sagrado dourado flutuante com centelhas celestes.', 
+        perkShort: '👼 Ressurreição Sagrada 1x',
+        perkDesc: 'Se o herói sofrer dano fatal, ressuscita instantaneamente 1x por partida com 70% de vida e 3s de invulnerabilidade!',
+        type: 'halo', 
+        color: '#f1c40f' 
+    },
+    { 
+        id: 'hat_crown', 
+        name: 'Coroa Imperial de Ouro', 
+        price: 1400, 
+        rarity: 'legend', 
+        icon: '👑', 
+        desc: 'Cravejada de gemas reais e envolta em aura de glória.', 
+        perkShort: '👑 Majestade Real & Raio Divino',
+        perkDesc: '+40% HP, +40% Dano, +100% Moedas. A cada 4s um raio sagrado atinge o inimigo mais forte e gera ouro livre.',
+        type: 'crown', 
+        color: '#f1c40f' 
+    }
 ];
 
 /* ----------------------------------------------------
@@ -340,7 +528,7 @@ const UPGRADE_CARDS_POOL = [
         name: 'Precisão Mortal',
         icon: '🎯',
         rarity: 'rare',
-        desc: '+20% de Chance de Acerto Crítico (causa 200% de dano).',
+        desc: '+20% de Chance de Acerto Crítico.',
         apply: (p) => { p.critChance += 0.20; }
     },
     {
@@ -356,7 +544,7 @@ const UPGRADE_CARDS_POOL = [
         name: 'Pele de Ferro',
         icon: '🛡️',
         rarity: 'rare',
-        desc: 'Reduz em 20% todo o dano recebido de inimigos.',
+        desc: 'Reduz em 20% todo o dano recebido de inimigos e chefes.',
         apply: (p) => { p.damageReduction += 0.20; }
     },
     {
@@ -517,13 +705,19 @@ let shockwaveEffects = [];
 let dashGhosts = [];
 let shadowMinions = [];
 
+// Entidades de Chefão
+let activeBoss = null;
+let bossProjectiles = [];
+let bossTelegraphs = [];
+let bossShockwaveRings = [];
+
 let screenShake = 0;
 let lastAttackTime = 0;
 let spawnInterval = null;
 let timerInterval = null;
 let lastFrameTime = performance.now();
 
-// SISTEMA DE ONDAS: RIGOROSAMENTE 50 INIMIGOS POR ONDA
+// SISTEMA DE ONDAS: 50 INIMIGOS COM CHEFÃO ÉPICO NO FINAL
 const ENEMIES_PER_WAVE = 50;
 let waveLevel = 1;
 let waveEnemiesSpawned = 0;
@@ -542,7 +736,7 @@ const JOYSTICK_MAX_RADIUS = 42;
    REDIMENSIONAMENTO COM SUPORTE A DPR OTIMIZADO
 ---------------------------------------------------- */
 function resizeGame() {
-    dpr = Math.min(window.devicePixelRatio || 1, 1.75); // Limite inteligente para evitar aquecimento em telas 3K/4K de celular
+    dpr = Math.min(window.devicePixelRatio || 1, 1.75);
     canvasWidth = window.innerWidth;
     canvasHeight = window.innerHeight;
 
@@ -774,25 +968,28 @@ class ShadowMinion {
     }
 
     update(dt) {
-        let nearestEnemy = null;
-        let minDist = Infinity;
-        enemies.forEach(enemy => {
-            const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
-            if (dist < minDist) {
-                minDist = dist;
-                nearestEnemy = enemy;
-            }
-        });
+        let nearestTarget = activeBoss;
+        let minDist = activeBoss ? Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y) : Infinity;
 
-        if (nearestEnemy) {
-            const angle = Math.atan2(nearestEnemy.y - this.y, nearestEnemy.x - this.x);
-            if (minDist > 32) {
+        if (!nearestTarget) {
+            enemies.forEach(enemy => {
+                const dist = Math.hypot(enemy.x - this.x, enemy.y - this.y);
+                if (dist < minDist) {
+                    minDist = dist;
+                    nearestTarget = enemy;
+                }
+            });
+        }
+
+        if (nearestTarget) {
+            const angle = Math.atan2(nearestTarget.y - this.y, nearestTarget.x - this.x);
+            if (minDist > (nearestTarget.radius + this.radius + 10)) {
                 this.x += Math.cos(angle) * this.speed * dt;
                 this.y += Math.sin(angle) * this.speed * dt;
             } else {
                 const now = Date.now();
                 if (now - this.lastAttack > this.cooldown) {
-                    nearestEnemy.takeDamage(this.damage, angle, 6);
+                    nearestTarget.takeDamage(this.damage, angle, 6);
                     this.lastAttack = now;
                     slashVisuals.push(new SlashEffect(this.x, this.y, angle, 75, '#9b59b6'));
                     audio.playSlash();
@@ -968,6 +1165,20 @@ class Projectile {
             this.markedForDeletion = true;
         }
 
+        // Colisão com Chefão
+        if (activeBoss) {
+            const dist = Math.hypot(this.x - activeBoss.x, this.y - activeBoss.y);
+            if (dist < this.radius + activeBoss.radius) {
+                activeBoss.takeDamage(this.damage, Math.atan2(this.vy, this.vx), 4, this.isCrit);
+                this.markedForDeletion = true;
+                if (shockwaveEffects.length < 10) {
+                    shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 22, this.type === 'fireball' ? '#e67e22' : '#2ecc71', 2));
+                }
+                return;
+            }
+        }
+
+        // Colisão com Monstros Normais
         for (let i = 0; i < enemies.length; i++) {
             const enemy = enemies[i];
             const dist = Math.hypot(this.x - enemy.x, this.y - enemy.y);
@@ -1016,6 +1227,440 @@ class Projectile {
 }
 
 /* ----------------------------------------------------
+   ENTIDADES DO CHEFÃO (PROJÉTEIS, TELEGRAFOS E ONDAS)
+---------------------------------------------------- */
+class BossProjectile {
+    constructor(x, y, angle, speed, damage, color = '#ff1744', radius = 7) {
+        this.x = x;
+        this.y = y;
+        this.vx = Math.cos(angle) * speed;
+        this.vy = Math.sin(angle) * speed;
+        this.damage = damage;
+        this.color = color;
+        this.radius = radius;
+        this.life = 360;
+    }
+
+    update(dt) {
+        this.x += this.vx * dt;
+        this.y += this.vy * dt;
+        this.life -= dt;
+
+        if (player && !player.isDashing && !player.isImmortal) {
+            const dist = Math.hypot(player.x - this.x, player.y - this.y);
+            if (dist < player.radius + this.radius) {
+                player.takeDamage(this.damage);
+                return false;
+            }
+        }
+        return this.life > 0 && this.x > -60 && this.x < canvasWidth + 60 && this.y > -60 && this.y < canvasHeight + 60;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.fillStyle = this.color;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 1.6;
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+class BossTelegraph {
+    constructor(type, data, duration = 40) {
+        this.type = type; // 'line' ou 'circle'
+        this.data = data;
+        this.duration = duration;
+        this.life = duration;
+    }
+    update(dt) {
+        this.life -= dt;
+        return this.life > 0;
+    }
+    draw() {
+        ctx.save();
+        const progress = Math.max(0, 1 - (this.life / this.duration));
+        ctx.globalAlpha = 0.22 + progress * 0.45;
+        if (this.type === 'line') {
+            ctx.strokeStyle = '#ff1744';
+            ctx.lineWidth = this.data.width || 18;
+            ctx.beginPath();
+            ctx.moveTo(this.data.x1, this.data.y1);
+            ctx.lineTo(this.data.x2, this.data.y2);
+            ctx.stroke();
+        } else if (this.type === 'circle') {
+            ctx.fillStyle = 'rgba(255, 23, 68, 0.25)';
+            ctx.strokeStyle = '#ff1744';
+            ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            ctx.arc(this.data.x, this.data.y, this.data.radius * progress, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.stroke();
+        }
+        ctx.restore();
+    }
+}
+
+class BossShockwaveRing {
+    constructor(x, y, maxRadius = 180, damage = 28) {
+        this.x = x;
+        this.y = y;
+        this.radius = 12;
+        this.maxRadius = maxRadius;
+        this.damage = damage;
+        this.hitPlayer = false;
+        this.life = 26;
+        this.maxLife = 26;
+    }
+    update(dt) {
+        this.radius += ((this.maxRadius - 12) / this.maxLife) * dt;
+        this.life -= dt;
+        if (!this.hitPlayer && player && !player.isDashing && !player.isImmortal) {
+            const dist = Math.hypot(player.x - this.x, player.y - this.y);
+            if (Math.abs(dist - this.radius) < player.radius + 8) {
+                player.takeDamage(this.damage);
+                this.hitPlayer = true;
+            }
+        }
+        return this.life > 0;
+    }
+    draw() {
+        ctx.save();
+        const alpha = Math.max(0, this.life / this.maxLife);
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = '#ff1744';
+        ctx.lineWidth = 4 * alpha;
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.restore();
+    }
+}
+
+/* ----------------------------------------------------
+   CLASSE PRINCIPAL DE CHEFÃO ÉPICO
+---------------------------------------------------- */
+class Boss {
+    constructor(waveLevel) {
+        this.waveLevel = waveLevel;
+        this.radius = 38;
+        this.x = canvasWidth / 2;
+        this.y = -50; // Surge do topo da arena
+        this.targetY = 130;
+        this.entering = true;
+
+        // Configuração de Chefe por Onda
+        if (waveLevel === 1) {
+            this.name = "Golias de Ferro";
+            this.icon = "🛡️";
+            this.baseHp = 2600;
+            this.speed = 1.9;
+            this.color = "#34495e";
+            this.accent = "#e74c3c";
+        } else if (waveLevel === 2) {
+            this.name = "Arquimago Abissal";
+            this.icon = "🔮";
+            this.baseHp = 4200;
+            this.speed = 2.1;
+            this.color = "#2c003e";
+            this.accent = "#9b59b6";
+        } else if (waveLevel === 3) {
+            this.name = "Quimera Carmesim";
+            this.icon = "🩸";
+            this.baseHp = 6800;
+            this.speed = 2.4;
+            this.color = "#4a000d";
+            this.accent = "#ff1744";
+        } else {
+            this.name = `Soberano do Caos (Nvl ${waveLevel})`;
+            this.icon = "👑";
+            this.baseHp = 9500 + (waveLevel - 4) * 3200;
+            this.speed = 2.6;
+            this.color = "#1a0933";
+            this.accent = "#f1c40f";
+        }
+
+        this.maxHp = Math.round(this.baseHp * enemyHpMultiplier);
+        this.hp = this.maxHp;
+        this.isEnraged = false;
+        this.actionCooldown = 120; // frames
+        this.currentAction = null;
+        this.actionTimer = 0;
+        this.hitFlash = 0;
+        this.angle = 0;
+        this.spiralAngle = 0;
+    }
+
+    takeDamage(amount, angle, knockbackForce = 2, isCrit = false) {
+        this.hp -= amount;
+        this.hitFlash = 4;
+        
+        // Resistência a empurrão de chefão
+        if (this.entering) return;
+
+        const damageColor = isCrit ? "#f1c40f" : "#ff4d4d";
+        const displayTxt = isCrit ? `💥 ${Math.round(amount)}` : `${Math.round(amount)}`;
+        damageTexts.push(new DamageText(this.x, this.y - 20, displayTxt, damageColor, 16, isCrit));
+
+        if (this.hp <= this.maxHp * 0.35 && !this.isEnraged) {
+            this.isEnraged = true;
+            this.speed *= 1.35;
+            audio.playBossAlert();
+            triggerHaptic([60, 40, 120]);
+            damageTexts.push(new DamageText(this.x - 70, this.y - 45, "⚡ MODO FÚRIA! ⚡", "#ff1744", 22, true));
+            shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 140, '#ff1744', 4.5));
+            const bar = document.getElementById('boss-hud-bar');
+            if (bar) bar.classList.add('enraged');
+            const phaseBadge = document.getElementById('boss-phase-badge');
+            if (phaseBadge) phaseBadge.innerText = "FÚRIA TOTAL";
+        }
+
+        this.updateBossHUD();
+
+        if (this.hp <= 0) {
+            this.die();
+        }
+    }
+
+    updateBossHUD() {
+        const hpVal = document.getElementById('boss-hud-hp-val');
+        const fill = document.getElementById('boss-bar-fill');
+        if (hpVal) hpVal.innerText = `${Math.max(0, Math.round(this.hp))} / ${this.maxHp}`;
+        if (fill) {
+            const pct = Math.max(0, (this.hp / this.maxHp) * 100);
+            fill.style.width = `${pct}%`;
+        }
+    }
+
+    die() {
+        activeBoss = null;
+        score += 50;
+        playerData.totalKills += 1;
+        audio.playExplosion();
+        audio.playLevelUp();
+        triggerHaptic([100, 100, 250]);
+        screenShake = 12;
+
+        const bossBar = document.getElementById('boss-hud-bar');
+        if (bossBar) {
+            bossBar.classList.add('hidden');
+            bossBar.classList.remove('enraged');
+        }
+
+        // Chuva monumental de recompensas de chefão
+        for (let i = 0; i < 24; i++) {
+            const angle = (Math.PI * 2 / 24) * i;
+            const dist = 30 + Math.random() * 45;
+            const coin = new DropPickup(this.x + Math.cos(angle) * dist, this.y + Math.sin(angle) * dist, 'coin');
+            coin.vx = Math.cos(angle) * 4;
+            coin.vy = Math.sin(angle) * 4;
+            dropPickups.push(coin);
+        }
+
+        dropPickups.push(new DropPickup(this.x - 20, this.y, 'heal'));
+        dropPickups.push(new DropPickup(this.x + 20, this.y, 'mana'));
+
+        shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 180, '#f1c40f', 5));
+        for (let i = 0; i < 20; i++) {
+            particleEffects.push(new Particle(this.x, this.y, '#f1c40f', 5, 4, 25));
+            particleEffects.push(new Particle(this.x, this.y, '#ff1744', 4, 3, 20));
+        }
+
+        damageTexts.push(new DamageText(this.x - 70, this.y - 30, "👑 CHEFÃO DERROTADO! 👑", "#f1c40f", 22, true));
+
+        // Conclui a onda e abre as cartas de melhoria
+        setTimeout(() => {
+            triggerWaveUpgrade();
+        }, 1200);
+    }
+
+    update(dt) {
+        if (!player) return;
+
+        // Animação de Entrada
+        if (this.entering) {
+            this.y += 2.5 * dt;
+            if (this.y >= this.targetY) {
+                this.y = this.targetY;
+                this.entering = false;
+                audio.playBossSlam();
+                screenShake = 7;
+                bossShockwaveRings.push(new BossShockwaveRing(this.x, this.y, 160, 25));
+            }
+            return;
+        }
+
+        this.angle = Math.atan2(player.y - this.y, player.x - this.x);
+
+        // Movimentação em direção ao jogador
+        const distToPlayer = Math.hypot(player.x - this.x, player.y - this.y);
+        const stopDist = (this.waveLevel === 2) ? 140 : 80;
+
+        if (distToPlayer > stopDist) {
+            this.x += Math.cos(this.angle) * this.speed * dt;
+            this.y += Math.sin(this.angle) * this.speed * dt;
+        }
+
+        // Dano de Colisão
+        if (distToPlayer < this.radius + player.radius) {
+            if (!player.isDashing && !player.isImmortal) {
+                player.takeDamage(this.isEnraged ? 36 : 26);
+            }
+        }
+
+        // Gerenciamento dos Ataques Especiais de Chefe
+        this.actionCooldown -= dt;
+        if (this.actionCooldown <= 0) {
+            this.executeAttackPattern();
+            this.actionCooldown = this.isEnraged ? 80 : 130;
+        }
+    }
+
+    executeAttackPattern() {
+        if (!player) return;
+
+        // ONDA 1: GOLIAS DE FERRO (Impacto Sísmico & Investida com Telegrafo)
+        if (this.waveLevel === 1) {
+            const rand = Math.random();
+            if (rand < 0.5) {
+                // Impacto Sísmico Duplo
+                audio.playBossSlam();
+                screenShake = 6;
+                bossShockwaveRings.push(new BossShockwaveRing(this.x, this.y, 200, 30));
+                setTimeout(() => {
+                    if (activeBoss) {
+                        bossShockwaveRings.push(new BossShockwaveRing(this.x, this.y, 240, 32));
+                    }
+                }, 350);
+            } else {
+                // Investida Telegrafada com Linha Vermelha
+                const targetX = player.x;
+                const targetY = player.y;
+                bossTelegraphs.push(new BossTelegraph('line', { x1: this.x, y1: this.y, x2: targetX, y2: targetY, width: 24 }, 35));
+                setTimeout(() => {
+                    if (activeBoss) {
+                        audio.playSlash();
+                        const chargeAngle = Math.atan2(targetY - this.y, targetX - this.x);
+                        this.x += Math.cos(chargeAngle) * 160;
+                        this.y += Math.sin(chargeAngle) * 160;
+                        this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
+                        this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
+                        bossShockwaveRings.push(new BossShockwaveRing(this.x, this.y, 110, 25));
+                    }
+                }, 550);
+            }
+        }
+        // ONDA 2: ARQUIMAGO ABISSAL (Danmaku Espiral & Vórtice)
+        else if (this.waveLevel === 2) {
+            audio.playSpecial();
+            const count = this.isEnraged ? 18 : 12;
+            for (let i = 0; i < count; i++) {
+                const ang = this.spiralAngle + (Math.PI * 2 / count) * i;
+                bossProjectiles.push(new BossProjectile(this.x, this.y, ang, 4.2, 22, '#9b59b6', 8));
+            }
+            this.spiralAngle += 0.45;
+            
+            // Teleporte Estratégico
+            if (Math.random() < 0.4) {
+                setTimeout(() => {
+                    if (activeBoss) {
+                        shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 80, '#9b59b6', 3));
+                        this.x = Math.random() * (canvasWidth - 120) + 60;
+                        this.y = Math.random() * (canvasHeight - 120) + 60;
+                        shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 80, '#9b59b6', 3));
+                    }
+                }, 400);
+            }
+        }
+        // ONDA 3: QUIMERA CARMESIM (Sopro Flamígero & Rajada Tripla de Sangue)
+        else if (this.waveLevel === 3) {
+            audio.playVampireRoar();
+            const baseAngle = Math.atan2(player.y - this.y, player.x - this.x);
+            const spread = [-0.3, -0.15, 0, 0.15, 0.3];
+            spread.forEach(offset => {
+                bossProjectiles.push(new BossProjectile(this.x, this.y, baseAngle + offset, 6.5, 26, '#ff1744', 9));
+            });
+            bossShockwaveRings.push(new BossShockwaveRing(this.x, this.y, 130, 24));
+        }
+        // ONDA 4+: SOBERANO DO CAOS (Inferno de Balas e Choques Múltiplos)
+        else {
+            audio.playBossAlert();
+            audio.playBossSlam();
+            screenShake = 7;
+            bossShockwaveRings.push(new BossShockwaveRing(this.x, this.y, 220, 35));
+            const count = 16;
+            for (let i = 0; i < count; i++) {
+                const ang = (Math.PI * 2 / count) * i;
+                bossProjectiles.push(new BossProjectile(this.x, this.y, ang, 5.0, 28, '#f1c40f', 8));
+            }
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        ctx.rotate(this.angle);
+
+        // Aura de Fúria
+        if (this.isEnraged) {
+            ctx.save();
+            ctx.strokeStyle = '#ff1744';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius + 12, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.fillStyle = 'rgba(255, 23, 68, 0.25)';
+            ctx.fill();
+            ctx.restore();
+        }
+
+        // Corpo do Chefe
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = this.hitFlash > 0 ? '#ffffff' : this.color;
+        if (this.hitFlash > 0) this.hitFlash--;
+        ctx.fill();
+        ctx.lineWidth = 3.5;
+        ctx.strokeStyle = this.accent;
+        ctx.stroke();
+
+        // Olhos / Núcleo do Chefe
+        ctx.fillStyle = '#ff1744';
+        ctx.beginPath();
+        ctx.arc(15, -10, 6, 0, Math.PI * 2);
+        ctx.arc(15, 10, 6, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.fillStyle = '#ffffff';
+        ctx.beginPath();
+        ctx.arc(17, -10, 2.5, 0, Math.PI * 2);
+        ctx.arc(17, 10, 2.5, 0, Math.PI * 2);
+        ctx.fill();
+
+        // Chifres / Detalhes de armadura
+        ctx.fillStyle = this.accent;
+        ctx.beginPath();
+        ctx.moveTo(-10, -25);
+        ctx.lineTo(10, -42);
+        ctx.lineTo(2, -22);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.beginPath();
+        ctx.moveTo(-10, 25);
+        ctx.lineTo(10, 42);
+        ctx.lineTo(2, 22);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+/* ----------------------------------------------------
    CLASSE DO JOGADOR
 ---------------------------------------------------- */
 class Player {
@@ -1051,6 +1696,7 @@ class Player {
         this.attackSpeedBoost = 1.0;
         this.speedBoost = 1.0;
         this.critChance = 0.05;
+        this.critMultiplier = 2.0;
         this.lifestealPct = 0.0;
         this.damageReduction = 0.0;
         this.dashCdrPct = 0.0;
@@ -1067,6 +1713,13 @@ class Player {
         this.dashDuration = 180;
         this.dashSpeedMultiplier = 3.2;
         this.dashAngle = 0;
+
+        // Passivas e temporizadores de Chapéus
+        this.equippedHat = playerData.equippedHat || 'hat_none';
+        this.hasHolyRevive = (this.equippedHat === 'hat_halo');
+        this.isShadowStealthed = false;
+        this.stealthTimer = 0;
+        this.hatPeriodicTimer = 0;
 
         // Habilidades e Temporizadores Integrados ao Delta Time
         this.fury = 0;
@@ -1091,7 +1744,36 @@ class Player {
         this.isImmortal = false;
         this.frenzyTick = 0;
 
-        this.equippedHat = playerData.equippedHat || 'hat_none';
+        this.applyHatPassives();
+    }
+
+    applyHatPassives() {
+        if (this.equippedHat === 'hat_bandana') {
+            this.speedBoost += 0.20;
+            this.dashCdrPct += 0.35;
+        } else if (this.equippedHat === 'hat_cowboy') {
+            this.critChance += 0.25;
+            this.critMultiplier = 2.5;
+        } else if (this.equippedHat === 'hat_mage') {
+            this.maxMana += 60;
+            this.mana = this.maxMana;
+            this.manaRegenMultiplier += 1.5;
+        } else if (this.equippedHat === 'hat_pirate') {
+            this.coinMultiplier += 0.8;
+        } else if (this.equippedHat === 'hat_viking') {
+            this.maxHp += 60;
+            this.hp = this.maxHp;
+            this.damageReduction += 0.20;
+        } else if (this.equippedHat === 'hat_cyber_visor') {
+            this.damageBoost += 0.30;
+        } else if (this.equippedHat === 'hat_demon') {
+            this.damageBoost += 0.35;
+        } else if (this.equippedHat === 'hat_crown') {
+            this.maxHp += 40;
+            this.hp = this.maxHp;
+            this.damageBoost += 0.40;
+            this.coinMultiplier += 1.0;
+        }
     }
 
     dash() {
@@ -1105,7 +1787,14 @@ class Player {
         audio.playDash();
         triggerHaptic(20);
 
-        const ghostColor = (this.type === 'vampiro') ? '#ff1744' : '#1abc9c';
+        // Capuz das Sombras: Furtividade e Bônus de Dano
+        if (this.equippedHat === 'hat_hood') {
+            this.isShadowStealthed = true;
+            this.stealthTimer = 72; // ~1.2 segundos
+            damageTexts.push(new DamageText(this.x, this.y - 20, "👤 FURTIVO!", "#66fcf1", 14, true));
+        }
+
+        const ghostColor = (this.type === 'vampiro') ? '#ff1744' : (this.equippedHat === 'hat_hood' ? '#2c3e50' : '#1abc9c');
         if (shockwaveEffects.length < 10) {
             shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 40, ghostColor, 2.5));
         }
@@ -1211,8 +1900,26 @@ class Player {
     takeDamage(amount) {
         if (this.isDashing || this.isImmortal) return;
 
-        const actualDamage = amount * Math.max(0.15, 1 - this.damageReduction);
+        let actualDamage = amount * Math.max(0.15, 1 - this.damageReduction);
         triggerHaptic(18);
+
+        // Samurai: Contra-Ataque Instantâneo de 360 Graus
+        if (this.equippedHat === 'hat_samurai') {
+            audio.playSlash();
+            slashVisuals.push(new SlashEffect(this.x, this.y, Math.random() * Math.PI * 2, 130, '#f1c40f'));
+            enemies.forEach(e => {
+                const dist = Math.hypot(e.x - this.x, e.y - this.y);
+                if (dist < 110) {
+                    e.takeDamage(95 * this.damageBoost, Math.atan2(e.y - this.y, e.x - this.x), 10);
+                }
+            });
+            if (activeBoss) {
+                const distB = Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y);
+                if (distB < 120 + activeBoss.radius) {
+                    activeBoss.takeDamage(95 * this.damageBoost, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 5);
+                }
+            }
+        }
 
         if (this.isMechaMode) {
             this.mechaHp -= actualDamage;
@@ -1229,7 +1936,20 @@ class Player {
             this.hp -= actualDamage;
             audio.playHit();
             damageTexts.push(new DamageText(this.x, this.y - 10, `-${Math.round(actualDamage)}`, '#e74c3c'));
-            if (this.hp <= 0) triggerGameOver();
+            
+            // Auréola Celestial: Ressurreição Divina 1x
+            if (this.hp <= 0 && this.hasHolyRevive) {
+                this.hasHolyRevive = false;
+                this.hp = Math.round(this.maxHp * 0.7);
+                this.isImmortal = true;
+                audio.playHolyChime();
+                triggerHaptic([100, 100, 200]);
+                damageTexts.push(new DamageText(this.x - 75, this.y - 40, "👼 RESSURREIÇÃO SAGRADA! 👼", "#f1c40f", 20, true));
+                shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 140, '#f1c40f', 5));
+                setTimeout(() => { this.isImmortal = false; }, 3000);
+            } else if (this.hp <= 0) {
+                triggerGameOver();
+            }
         }
         updateHUD();
     }
@@ -1261,6 +1981,9 @@ class Player {
                         enemy.takeDamage(18 * this.damageBoost, Math.random() * Math.PI * 2, 2);
                     }
                 }
+                if (activeBoss) {
+                    activeBoss.takeDamage(22 * this.damageBoost, Math.random() * Math.PI * 2, 1);
+                }
             }
             if (this.thousandSlashesTimer <= 0) {
                 this.isThousandSlashes = false;
@@ -1288,11 +2011,75 @@ class Player {
                         }
                     }
                 }
+                if (activeBoss) {
+                    const distB = Math.hypot(this.x - activeBoss.x, this.y - activeBoss.y);
+                    if (distB < auraRadius + activeBoss.radius) {
+                        activeBoss.takeDamage(160 * this.damageBoost, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 4, true);
+                    }
+                }
             }
             if (this.vampireFrenzyTimer <= 0) {
                 this.isVampireFrenzy = false;
                 this.isImmortal = false;
                 this.vampireFrenzyTimer = 0;
+            }
+        }
+
+        // Furtividade do Capuz
+        if (this.isShadowStealthed) {
+            this.stealthTimer -= dt;
+            if (this.stealthTimer <= 0) {
+                this.isShadowStealthed = false;
+            }
+        }
+
+        // Habilidades Periódicas de Chapéus
+        this.hatPeriodicTimer += dt;
+
+        // Chifres Demoníacos: Queimadura contínua em área (35 DPS)
+        if (this.equippedHat === 'hat_demon' && this.hatPeriodicTimer % 15 < dt) {
+            enemies.forEach(e => {
+                if (Math.hypot(e.x - this.x, e.y - this.y) < 100) {
+                    e.takeDamage(9 * this.damageBoost, Math.atan2(e.y - this.y, e.x - this.x), 1);
+                }
+            });
+            if (activeBoss && Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y) < 110 + activeBoss.radius) {
+                activeBoss.takeDamage(12 * this.damageBoost, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 1);
+            }
+        }
+
+        // Chapéu Arcano Estelar: Dispara orbes cósmicos a cada 2.5s
+        if (this.equippedHat === 'hat_mage' && this.hatPeriodicTimer >= 150) {
+            this.hatPeriodicTimer = 0;
+            const target = activeBoss || enemies[0];
+            if (target) {
+                const ang = Math.atan2(target.y - this.y, target.x - this.x);
+                projectiles.push(new Projectile(this.x, this.y, ang - 0.2, 9.5, 45 * this.damageBoost, 'fireball'));
+                projectiles.push(new Projectile(this.x, this.y, ang + 0.2, 9.5, 45 * this.damageBoost, 'fireball'));
+                audio.playShoot();
+            }
+        }
+
+        // Bicórnio Pirata: Dispara canhão a cada 5s
+        if (this.equippedHat === 'hat_pirate' && this.hatPeriodicTimer >= 300) {
+            this.hatPeriodicTimer = 0;
+            audio.playExplosion();
+            projectiles.push(new Projectile(this.x, this.y, this.angle, 14, 140 * this.damageBoost, 'mecha_bullet', true));
+            screenShake = 3;
+        }
+
+        // Coroa Imperial: Raio Divino + Ouro Grátis a cada 4s
+        if (this.equippedHat === 'hat_crown' && this.hatPeriodicTimer >= 240) {
+            this.hatPeriodicTimer = 0;
+            playerData.coins += 5;
+            runCoinsEarned += 5;
+            savePlayerData();
+            updateCurrencyDisplays();
+            const target = activeBoss || enemies[0];
+            if (target) {
+                audio.playHolyChime();
+                target.takeDamage(120 * this.damageBoost, Math.random() * Math.PI * 2, 5, true);
+                shockwaveEffects.push(new ShockwaveEffect(target.x, target.y, 60, '#f1c40f', 3));
             }
         }
     }
@@ -1308,7 +2095,7 @@ class Player {
             dy += joystickVector.y;
         }
 
-        // Teclado (para testes no desktop)
+        // Teclado (computador)
         if (keys['w'] || keys['W'] || keys['ArrowUp']) dy -= 1;
         if (keys['s'] || keys['S'] || keys['ArrowDown']) dy += 1;
         if (keys['a'] || keys['A'] || keys['ArrowLeft']) dx -= 1;
@@ -1348,17 +2135,20 @@ class Player {
         this.x = Math.max(this.radius, Math.min(canvasWidth - this.radius, this.x));
         this.y = Math.max(this.radius, Math.min(canvasHeight - this.radius, this.y));
 
-        // Mira Automática para Celular
+        // Mira Automática para Celular (prioriza Chefão se vivo)
         if (isMobileAttacking || isMouseDown) {
-            let nearestEnemy = null;
-            let minDist = 520;
-            enemies.forEach(e => {
-                const dist = Math.hypot(e.x - this.x, e.y - this.y);
-                if (dist < minDist) {
-                    minDist = dist;
-                    nearestEnemy = e;
-                }
-            });
+            let nearestEnemy = activeBoss;
+            let minDist = activeBoss ? Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y) : 520;
+
+            if (!nearestEnemy) {
+                enemies.forEach(e => {
+                    const dist = Math.hypot(e.x - this.x, e.y - this.y);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestEnemy = e;
+                    }
+                });
+            }
 
             if (nearestEnemy) {
                 this.angle = Math.atan2(nearestEnemy.y - this.y, nearestEnemy.x - this.x);
@@ -1389,7 +2179,15 @@ class Player {
         updateHUD();
 
         const isCrit = Math.random() < this.critChance;
-        const finalDamage = this.damage * this.damageBoost * (isCrit ? 2.0 : 1.0);
+        let finalDamage = this.damage * this.damageBoost * (isCrit ? this.critMultiplier : 1.0);
+        
+        // Bônus de Golpe Furtivo do Capuz
+        if (this.isShadowStealthed) {
+            finalDamage *= 2.5;
+            this.isShadowStealthed = false;
+            damageTexts.push(new DamageText(this.x, this.y - 30, "🗡️ GOLPE DAS SOMBRAS!", "#9b59b6", 18, true));
+        }
+
         if (isCrit) audio.playCrit();
 
         // CLASSE VAMPIRO
@@ -1410,6 +2208,15 @@ class Player {
                     damageTexts.push(new DamageText(this.x, this.y - 12, `+${heal} HP`, '#2ecc71', 11));
                 }
             });
+
+            if (activeBoss) {
+                const distB = Math.hypot(this.x - activeBoss.x, this.y - activeBoss.y);
+                if (distB < attackRadius + activeBoss.radius) {
+                    activeBoss.takeDamage(finalDamage, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 3, isCrit);
+                    const heal = Math.max(2, Math.round(finalDamage * 0.1));
+                    this.hp = Math.min(this.maxHp, this.hp + heal);
+                }
+            }
 
             clawVisuals.push(new ClawSlashEffect(this.x + Math.cos(this.angle) * 25, this.y + Math.sin(this.angle) * 25, this.angle, attackRadius * 1.5));
             
@@ -1453,6 +2260,13 @@ class Player {
                     enemy.takeDamage(finalDamage, angle, 9, isCrit);
                 }
             });
+
+            if (activeBoss) {
+                const distB = Math.hypot(this.x - activeBoss.x, this.y - activeBoss.y);
+                if (distB < attackRadius + activeBoss.radius) {
+                    activeBoss.takeDamage(finalDamage, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 4, isCrit);
+                }
+            }
 
             const slashColor = this.isFireMode ? '#ff4500' : (this.type === 'assassino' ? '#e74c3c' : '#66fcf1');
             slashVisuals.push(new SlashEffect(this.x + Math.cos(this.angle) * 25, this.y + Math.sin(this.angle) * 25, this.angle, attackRadius * 1.6, slashColor));
@@ -1502,6 +2316,33 @@ class Player {
     }
 
     draw(targetCtx = ctx, isPreview = false) {
+        // Mira Laser Cyber Visor
+        if (!isPreview && this.equippedHat === 'hat_cyber_visor') {
+            const target = activeBoss || enemies[0];
+            if (target) {
+                targetCtx.save();
+                targetCtx.strokeStyle = 'rgba(0, 206, 201, 0.45)';
+                targetCtx.lineWidth = 1.5;
+                targetCtx.setLineDash([4, 4]);
+                targetCtx.beginPath();
+                targetCtx.moveTo(this.x, this.y);
+                targetCtx.lineTo(target.x, target.y);
+                targetCtx.stroke();
+                targetCtx.restore();
+            }
+        }
+
+        // Aura Infernal dos Chifres Demoníacos
+        if (!isPreview && this.equippedHat === 'hat_demon') {
+            targetCtx.save();
+            targetCtx.strokeStyle = 'rgba(231, 76, 60, 0.35)';
+            targetCtx.lineWidth = 1.5;
+            targetCtx.beginPath();
+            targetCtx.arc(this.x, this.y, 95, 0, Math.PI * 2);
+            targetCtx.stroke();
+            targetCtx.restore();
+        }
+
         targetCtx.save();
         targetCtx.translate(this.x, this.y);
         targetCtx.rotate(this.angle);
@@ -1636,6 +2477,13 @@ class Player {
             targetCtx.beginPath();
             targetCtx.arc(0, -16, 4, 0, Math.PI * 2);
             targetCtx.fill();
+
+            // Anéis orbitais cósmicos
+            targetCtx.strokeStyle = 'rgba(108, 92, 231, 0.6)';
+            targetCtx.lineWidth = 1.5;
+            targetCtx.beginPath();
+            targetCtx.ellipse(0, -16, 16, 5, 0.4, 0, Math.PI * 2);
+            targetCtx.stroke();
         } 
         else if (hat.type === 'pirate') {
             targetCtx.fillStyle = hat.color;
@@ -1720,7 +2568,7 @@ class Player {
 }
 
 /* ----------------------------------------------------
-   CLASSE DE INIMIGOS
+   CLASSE DE INIMIGOS COMUNS
 ---------------------------------------------------- */
 class Enemy {
     constructor(isFast = false, isElite = false, isCreeper = false) {
@@ -1798,6 +2646,11 @@ class Enemy {
                             other.takeDamage(explosionDmg, Math.atan2(other.y - this.y, other.x - this.x), 7);
                         }
                     });
+                    if (activeBoss) {
+                        if (Math.hypot(this.x - activeBoss.x, this.y - activeBoss.y) < 80 + activeBoss.radius) {
+                            activeBoss.takeDamage(explosionDmg, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 2);
+                        }
+                    }
                 }
             }
 
@@ -1918,13 +2771,20 @@ class Enemy {
 }
 
 /* ----------------------------------------------------
-   GERENCIADOR DE ONDAS (50 INIMIGOS POR HORDA)
+   GERENCIADOR DE ONDAS E ENCONTRO COM CHEFÃO
 ---------------------------------------------------- */
 function checkWaveProgress() {
     const waveBar = document.getElementById('wave-bar');
     const waveText = document.getElementById('wave-progress-text');
     const leftText = document.getElementById('wave-enemies-left');
     
+    if (activeBoss) {
+        if (waveText) waveText.innerText = "CHEFÃO!";
+        if (leftText) leftText.innerText = "1";
+        if (waveBar) waveBar.style.width = `100%`;
+        return;
+    }
+
     const remaining = Math.max(0, ENEMIES_PER_WAVE - waveEnemiesKilled);
     const pct = Math.min(100, (waveEnemiesKilled / ENEMIES_PER_WAVE) * 100);
     
@@ -1932,8 +2792,43 @@ function checkWaveProgress() {
     if (waveText) waveText.innerText = `${waveEnemiesKilled}/${ENEMIES_PER_WAVE}`;
     if (leftText) leftText.innerText = `${remaining}`;
 
-    if (waveEnemiesKilled >= ENEMIES_PER_WAVE && enemies.length === 0 && !isUpgradingWave) {
-        triggerWaveUpgrade();
+    // Quando todos os 50 monstros são aniquilados, o CHEFÃO DA ONDA É INVOCADO!
+    if (waveEnemiesKilled >= ENEMIES_PER_WAVE && enemies.length === 0 && !activeBoss && !isUpgradingWave) {
+        triggerBossEncounter();
+    }
+}
+
+function triggerBossEncounter() {
+    activeBoss = new Boss(waveLevel);
+    audio.playBossAlert();
+    triggerHaptic([80, 50, 80, 50, 200]);
+    screenShake = 9;
+
+    // Exibe Banner de Alerta de Chefão
+    const banner = document.getElementById('boss-warning-banner');
+    const sub = document.getElementById('boss-warning-sub');
+    if (sub) sub.innerText = `O ${activeBoss.name} entrou na arena!`;
+    if (banner) {
+        banner.classList.remove('hidden');
+        setTimeout(() => {
+            banner.classList.add('hidden');
+        }, 2800);
+    }
+
+    // Configura e Exibe Barra Superior de Chefão
+    const bossBar = document.getElementById('boss-hud-bar');
+    const bossIcon = document.getElementById('boss-hud-icon');
+    const bossTitle = document.getElementById('boss-hud-title');
+    const phaseBadge = document.getElementById('boss-phase-badge');
+
+    if (bossIcon) bossIcon.innerText = activeBoss.icon;
+    if (bossTitle) bossTitle.innerText = activeBoss.name;
+    if (phaseBadge) phaseBadge.innerText = "FASE 1";
+    activeBoss.updateBossHUD();
+
+    if (bossBar) {
+        bossBar.classList.remove('hidden');
+        bossBar.classList.remove('enraged');
     }
 }
 
@@ -1945,7 +2840,7 @@ function triggerWaveUpgrade() {
 
     const subtitleEl = document.getElementById('upgrade-modal-subtitle');
     if (subtitleEl) {
-        subtitleEl.innerText = `Onda ${waveLevel} Concluída! Você eliminou todos os 50 monstros. Escolha seu poder para a Onda ${waveLevel + 1}:`;
+        subtitleEl.innerText = `Onda ${waveLevel} e seu Chefão foram Vencidos! Escolha seu poder para a Onda ${waveLevel + 1}:`;
     }
     renderUpgradeCards();
     const modalEl = document.getElementById('upgrade-cards-modal');
@@ -2002,10 +2897,11 @@ function selectUpgradeCard(card) {
     waveLevel++;
     waveEnemiesSpawned = 0;
     waveEnemiesKilled = 0;
+    activeBoss = null;
     enemyHpMultiplier += 0.22;
     enemySpeedMultiplier += 0.06;
 
-    showBannerNotification(`🌊 ONDA ${waveLevel} INICIADA! (50 Monstros)`);
+    showBannerNotification(`🌊 ONDA ${waveLevel} INICIADA! (50 Monstros + Chefão)`);
     renderActiveUpgradesHUD();
     updateHUD();
 
@@ -2053,7 +2949,7 @@ function showBannerNotification(text) {
 }
 
 function spawnEnemy() {
-    if (gameRunning && !gamePaused && waveEnemiesSpawned < ENEMIES_PER_WAVE && enemies.length < 22) {
+    if (gameRunning && !gamePaused && !activeBoss && waveEnemiesSpawned < ENEMIES_PER_WAVE && enemies.length < 20) {
         waveEnemiesSpawned++;
         const isElite = (waveLevel >= 3 && Math.random() < 0.18);
         const isCreeper = (!isElite && waveLevel >= 2 && Math.random() < 0.22);
@@ -2120,6 +3016,7 @@ function renderShopHats() {
             <div class="item-icon-preview">${hat.icon}</div>
             <div class="shop-item-title">${hat.name}</div>
             <div class="shop-item-desc">${hat.desc}</div>
+            <div class="hat-perk-badge">${hat.perkShort}</div>
             ${actionBtnHtml}
         `;
 
@@ -2135,9 +3032,13 @@ function previewHatInShop(hat) {
     const infoEl = document.getElementById('shop-selected-info');
     if (infoEl) {
         infoEl.innerHTML = `
-            <div style="font-weight:bold; color:#66fcf1; font-size:0.76rem;">${hat.name}</div>
+            <div style="font-weight:bold; color:#66fcf1; font-size:0.78rem;">${hat.name}</div>
             <div style="margin:2px 0; color:#f1c40f; font-size:0.65rem;">${hat.rarity.toUpperCase()} &bull; ${hat.price === 0 ? 'Grátis' : hat.price + ' Moedas'}</div>
-            <div style="font-size:0.62rem;">${hat.desc}</div>
+            <div style="font-size:0.62rem; color:var(--text-light);">${hat.desc}</div>
+            <div class="hat-perk-highlight">
+                <strong>⚡ PODER ESPECIAL:</strong>
+                ${hat.perkDesc}
+            </div>
         `;
     }
     renderShopPreviewCanvas(hat);
@@ -2155,7 +3056,7 @@ function buyHat(hatId, price) {
         savePlayerData();
         renderShopHats();
     } else {
-        alert("Moedas insuficientes! Derrote monstros na arena para coletar mais ouro.");
+        alert("Moedas insuficientes! Derrote monstros e chefões para coletar mais ouro.");
     }
 }
 
@@ -2277,6 +3178,10 @@ function startGameWithClass(classKey) {
     runCoinsEarned = 0;
     elapsedSeconds = 0;
     
+    activeBoss = null;
+    bossProjectiles = [];
+    bossTelegraphs = [];
+    bossShockwaveRings = [];
     shadowMinions = [];
     screenShake = 0;
     enemyHpMultiplier = 1.0;
@@ -2290,6 +3195,12 @@ function startGameWithClass(classKey) {
     particleEffects = [];
     shockwaveEffects = [];
     dashGhosts = [];
+
+    const bossBar = document.getElementById('boss-hud-bar');
+    if (bossBar) {
+        bossBar.classList.add('hidden');
+        bossBar.classList.remove('enraged');
+    }
 
     renderActiveUpgradesHUD();
     updateHUD();
@@ -2339,6 +3250,11 @@ function triggerGameOver() {
 
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('mobile-controls').classList.add('hidden');
+    const bossBar = document.getElementById('boss-hud-bar');
+    if (bossBar) bossBar.classList.add('hidden');
+    const warning = document.getElementById('boss-warning-banner');
+    if (warning) warning.classList.add('hidden');
+
     document.getElementById('game-over-screen').classList.remove('hidden');
 }
 
@@ -2359,6 +3275,11 @@ function goToLobbyFromGame() {
     document.getElementById('game-over-screen').classList.add('hidden');
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('mobile-controls').classList.add('hidden');
+    const bossBar = document.getElementById('boss-hud-bar');
+    if (bossBar) bossBar.classList.add('hidden');
+    const warning = document.getElementById('boss-warning-banner');
+    if (warning) warning.classList.add('hidden');
+
     document.getElementById('lobby-screen').classList.remove('hidden');
     renderLobbyPreview();
 }
@@ -2468,17 +3389,8 @@ function updateHUD() {
             }
         }
 
-        // Onda e Progresso de Inimigos
-        const waveBar = document.getElementById('wave-bar');
-        const waveText = document.getElementById('wave-progress-text');
-        const leftText = document.getElementById('wave-enemies-left');
-        const diffText = document.getElementById('difficulty-text');
-        const pct = Math.min(100, (waveEnemiesKilled / ENEMIES_PER_WAVE) * 100);
-        
-        if (waveBar) waveBar.style.width = `${pct}%`;
-        if (waveText) waveText.innerText = `${waveEnemiesKilled}/${ENEMIES_PER_WAVE}`;
-        if (leftText) leftText.innerText = `${Math.max(0, ENEMIES_PER_WAVE - waveEnemiesKilled)}`;
-        if (diffText) diffText.innerText = `${waveLevel}`;
+        // Onda e Progresso
+        checkWaveProgress();
     }
 
     const scoreEl = document.getElementById('score-text');
@@ -2684,7 +3596,7 @@ function gameLoop(currentTime) {
     
     // Normalização para 60 FPS (16.67ms por frame)
     let dt = deltaMs / 16.667;
-    if (dt > 3.0) dt = 1.0; // Evita saltos colossais se o app for suspenso
+    if (dt > 3.0) dt = 1.0;
     if (dt < 0.1) dt = 0.1;
 
     if (!gamePaused) {
@@ -2706,7 +3618,7 @@ function gameLoop(currentTime) {
         ctx.fillRect(-20, -20, canvasWidth + 40, canvasHeight + 40);
 
         // Grade sutil da arena
-        ctx.strokeStyle = 'rgba(102, 252, 241, 0.035)';
+        ctx.strokeStyle = activeBoss ? 'rgba(255, 23, 68, 0.05)' : 'rgba(102, 252, 241, 0.035)';
         ctx.lineWidth = 1;
         for (let x = 0; x < canvasWidth; x += 48) {
             ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvasHeight); ctx.stroke();
@@ -2719,6 +3631,15 @@ function gameLoop(currentTime) {
         if (player && (player.hp < player.maxHp * 0.3 || player.isVampireFrenzy)) {
             ctx.fillStyle = player.isVampireFrenzy ? 'rgba(255, 23, 68, 0.12)' : 'rgba(231, 76, 60, 0.1)';
             ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+        }
+
+        // Telegrafos e Zonas de Perigo do Chefe (Atrás de tudo)
+        for (let i = bossTelegraphs.length - 1; i >= 0; i--) {
+            if (!bossTelegraphs[i].update(dt)) {
+                bossTelegraphs.splice(i, 1);
+            } else {
+                bossTelegraphs[i].draw();
+            }
         }
 
         // Rastros do Dash / Frenesi
@@ -2735,6 +3656,15 @@ function gameLoop(currentTime) {
             if (shockwaveEffects[i].life <= 0) shockwaveEffects.splice(i, 1);
         }
 
+        // Ondas de Choque de Chefão
+        for (let i = bossShockwaveRings.length - 1; i >= 0; i--) {
+            if (!bossShockwaveRings[i].update(dt)) {
+                bossShockwaveRings.splice(i, 1);
+            } else {
+                bossShockwaveRings[i].draw();
+            }
+        }
+
         // Coletáveis (Moedas e Poções)
         for (let i = dropPickups.length - 1; i >= 0; i--) {
             if (!dropPickups[i].update(dt)) {
@@ -2744,11 +3674,20 @@ function gameLoop(currentTime) {
             }
         }
 
-        // Projéteis
+        // Projéteis do Jogador
         for (let i = projectiles.length - 1; i >= 0; i--) {
             projectiles[i].update(dt);
             projectiles[i].draw();
             if (projectiles[i].markedForDeletion) projectiles.splice(i, 1);
+        }
+
+        // Projéteis do Chefão
+        for (let i = bossProjectiles.length - 1; i >= 0; i--) {
+            if (!bossProjectiles[i].update(dt)) {
+                bossProjectiles.splice(i, 1);
+            } else {
+                bossProjectiles[i].draw();
+            }
         }
 
         // Partículas
@@ -2768,10 +3707,16 @@ function gameLoop(currentTime) {
             shadowMinions[i].draw();
         }
 
-        // Inimigos
+        // Inimigos Normais
         for (let i = 0; i < enemies.length; i++) {
             enemies[i].update(dt);
             enemies[i].draw();
+        }
+
+        // Chefão Épico
+        if (activeBoss) {
+            activeBoss.update(dt);
+            activeBoss.draw();
         }
 
         // Efeitos de Garras e Cortes
