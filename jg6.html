@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#0b0c10">
+    <title>RPG 2D - Arena dos Campeões (Mobile)</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div id="game-wrapper">
+        <div id="game-container">
+
+            <!-- TELA DE LOBBY / MENU PRINCIPAL -->
+            <div id="lobby-screen" class="screen-layer">
+                <div class="menu-top-bar">
+                    <div class="coin-display">
+                        <span class="coin-icon"></span>
+                        <span id="lobby-coins">0</span> Moedas
+                    </div>
+                    <div class="top-btn-group">
+                        <button class="icon-btn" id="audio-toggle-btn" onclick="toggleAudio()">🔊 Som: ON</button>
+                        <button class="icon-btn" onclick="toggleFullscreen()">⛶ Tela Cheia</button>
+                        <button class="icon-btn" onclick="showStatsModal()">🏆 Recordes</button>
+                    </div>
+                </div>
+
+                <div class="header-titles">
+                    <h1 class="title-glow">Arena dos Campeões</h1>
+                    <p class="subtitle">RPG 2D Mobile &bull; Batalha de Ondas &bull; 50 Monstros por Horda</p>
+                </div>
+
+                <div class="lobby-content">
+                    <div class="character-preview-card">
+                        <span class="equipped-badge" id="preview-class-badge">Guerreiro</span>
+                        <canvas id="previewCanvas" width="130" height="130"></canvas>
+                        <h3 id="preview-player-name">Herói</h3>
+                        <p id="preview-hat-name">👑 Sem Chapéu</p>
+                    </div>
+
+                    <div class="menu-options-panel">
+                        <button class="btn-menu primary" onclick="openClassSelect()">
+                            <span>⚔️ Entrar na Batalha</span>
+                            <span class="icon">➔</span>
+                        </button>
+                        <button class="btn-menu" onclick="openShop()">
+                            <span>👑 Loja de Chapéus</span>
+                            <span class="icon">🎩</span>
+                        </button>
+                        <button class="btn-menu" onclick="showControlsModal()">
+                            <span>📖 Guia & Habilidades</span>
+                            <span class="icon">⚡</span>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="lobby-footer-hint">
+                    📱 Use o analógico virtual à esquerda e os botões de ação à direita
+                </div>
+            </div>
+
+            <!-- TELA DE LOJA EXCLUSIVA DE CHAPÉUS -->
+            <div id="shop-screen" class="screen-layer hidden">
+                <div class="menu-top-bar">
+                    <div class="coin-display">
+                        <span class="coin-icon"></span>
+                        <span id="shop-coins">0</span> Moedas
+                    </div>
+                    <button class="icon-btn" onclick="closeShop()">⬅ Voltar ao Lobby</button>
+                </div>
+
+                <div class="header-titles">
+                    <h2 class="title-glow shop-title">Coleção de Chapéus & Elmos</h2>
+                    <span class="shop-header-badge">Personalize seu campeão com chapéus e elmos lendários</span>
+                </div>
+
+                <div class="shop-container">
+                    <div class="shop-main-view">
+                        <div class="shop-items-grid" id="shop-items-grid"></div>
+                        <div class="shop-side-preview">
+                            <h4>Provador do Herói</h4>
+                            <canvas id="shopPreviewCanvas" width="105" height="105"></canvas>
+                            <div id="shop-selected-info">Selecione um chapéu.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SELEÇÃO DE CLASSE -->
+            <div id="class-select-screen" class="screen-layer hidden">
+                <div class="menu-top-bar">
+                    <button class="icon-btn" onclick="returnToLobbyFromClass()">⬅ Voltar ao Lobby</button>
+                    <div class="coin-display">
+                        <span class="coin-icon"></span>
+                        <span id="select-coins">0</span> Moedas
+                    </div>
+                </div>
+
+                <div class="header-titles">
+                    <h1 class="title-glow class-select-title">Escolha sua Classe</h1>
+                    <p class="subtitle">Cada herói possui atributos e especiais únicos na arena</p>
+                </div>
+
+                <div class="class-options">
+                    <div class="class-card" onclick="startGameWithClass('guerreiro')">
+                        <div>
+                            <div class="class-badge">🛡️</div>
+                            <h3>Guerreiro</h3>
+                            <div class="class-stats">
+                                <div>❤️ HP: <strong>190</strong> | 💧 MP: <strong>60</strong></div>
+                                <div>⚔️ Dano: <strong>38</strong> | 🏃 Vel: <strong>3.2</strong></div>
+                                <div>💥 Ataque: Espada Giratória</div>
+                            </div>
+                        </div>
+                        <div class="class-special">🔥 <strong>Modo Fogo:</strong> Carga 100% ativa lâmina flamejante por 10s!</div>
+                    </div>
+
+                    <div class="class-card" onclick="startGameWithClass('mago')">
+                        <div>
+                            <div class="class-badge">🔮</div>
+                            <h3>Mago</h3>
+                            <div class="class-stats">
+                                <div>❤️ HP: <strong>95</strong> | 💧 MP: <strong>130</strong></div>
+                                <div>⚔️ Dano: <strong>55</strong> | 🏃 Vel: <strong>3.4</strong></div>
+                                <div>💥 Ataque: Esfera Arcana</div>
+                            </div>
+                        </div>
+                        <div class="class-special">👥 <strong>Sombras:</strong> Carga 100% invoca 2 guerreiros sombrios!</div>
+                    </div>
+
+                    <div class="class-card" onclick="startGameWithClass('atirador')">
+                        <div>
+                            <div class="class-badge">🏹</div>
+                            <h3>Atirador</h3>
+                            <div class="class-stats">
+                                <div>❤️ HP: <strong>115</strong> | 💧 MP: <strong>85</strong></div>
+                                <div>⚔️ Dano: <strong>26x2</strong> | 🏃 Vel: <strong>4.0</strong></div>
+                                <div>💥 Ataque: Disparo Duplo</div>
+                            </div>
+                        </div>
+                        <div class="class-special">🤖 <strong>Mecha Titan:</strong> Carga 100% pilota Mecha com canhões pesados!</div>
+                    </div>
+
+                    <div class="class-card" onclick="startGameWithClass('assassino')">
+                        <div>
+                            <div class="class-badge">🗡️</div>
+                            <h3>Assassino</h3>
+                            <div class="class-stats">
+                                <div>❤️ HP: <strong>105</strong> | 💧 MP: <strong>65</strong></div>
+                                <div>⚔️ Dano: <strong>24</strong> | 🏃 Vel: <strong>5.0</strong></div>
+                                <div>💥 Ataque: Corte Rápido</div>
+                            </div>
+                        </div>
+                        <div class="class-special">⚡ <strong>1000 Cortes:</strong> Carga 100% fatiamento contínuo por 10s!</div>
+                    </div>
+
+                    <div class="class-card vampire-card" onclick="startGameWithClass('vampiro')">
+                        <div>
+                            <div class="class-badge">🧛</div>
+                            <h3 class="vampire-title">Vampiro</h3>
+                            <div class="class-stats">
+                                <div>❤️ HP: <strong>150</strong> | 💧 MP: <strong>70</strong></div>
+                                <div>⚔️ Dano: <strong>32</strong> | 🏃 Vel: <strong>4.2</strong></div>
+                                <div>🩸 Ataque: Garras Carmesim (Roubo de Vida)</div>
+                            </div>
+                        </div>
+                        <div class="class-special vampire-special">🦇 <strong>Frenesi:</strong> IMORTAL por 5s, ultrarrápido e aniquila quem aproximar!</div>
+                    </div>
+                </div>
+
+                <div class="class-footer-hint">Toque em um herói para iniciar o combate</div>
+            </div>
+
+            <!-- MODAL DE MELHORIAS (ONDA DE 50 INIMIGOS) -->
+            <div id="upgrade-cards-modal" class="screen-layer hidden">
+                <div class="cards-selection-container">
+                    <div class="header-titles">
+                        <h1 class="title-glow wave-victory-title">⭐ ONDA VENCIDA! (50/50) ⭐</h1>
+                        <p class="subtitle" id="upgrade-modal-subtitle">50 monstros aniquilados! Escolha 1 poder para a próxima onda</p>
+                    </div>
+
+                    <div class="cards-grid" id="cards-grid-container"></div>
+
+                    <div class="upgrade-footer-hint">
+                        Toque na carta desejada para continuar
+                    </div>
+                </div>
+            </div>
+
+            <!-- GAME OVER -->
+            <div id="game-over-screen" class="screen-layer hidden">
+                <div class="modal-box">
+                    <h1>Fim de Jogo!</h1>
+                    <p class="modal-subtext">Seu herói sucumbiu aos monstros da arena.</p>
+
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="label">Inimigos Abatidos</div>
+                            <div class="value" id="final-score">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Moedas Coletadas</div>
+                            <div class="value stat-gold" id="final-coins">+0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Tempo</div>
+                            <div class="value" id="final-time">00:00</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Onda Alcançada</div>
+                            <div class="value" id="final-wave">1</div>
+                        </div>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button class="btn-action" onclick="restartGame()">⚔️ Jogar Novamente</button>
+                        <button class="btn-action secondary" onclick="goToLobbyFromGame()">🏠 Lobby</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MODAL DE RECORDES -->
+            <div id="stats-modal" class="screen-layer hidden">
+                <div class="modal-box victory">
+                    <h1 class="records-title">🏆 Suas Conquistas</h1>
+                    <div class="stats-grid">
+                        <div class="stat-item">
+                            <div class="label">Recorde de Abates</div>
+                            <div class="value" id="stat-high-score">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Total de Abates</div>
+                            <div class="value" id="stat-total-kills">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Moedas Totais</div>
+                            <div class="value stat-gold" id="stat-total-coins">0</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="label">Chapéus Desbloqueados</div>
+                            <div class="value" id="stat-unlocked-items">0/12</div>
+                        </div>
+                    </div>
+                    <button class="btn-action" onclick="hideStatsModal()">Fechar</button>
+                </div>
+            </div>
+
+            <!-- MODAL DE GUIA -->
+            <div id="controls-modal" class="screen-layer hidden">
+                <div class="modal-box controls-modal-box">
+                    <h1 class="guide-title">Guia de Comandos</h1>
+                    <div class="guide-content">
+                        <p class="guide-highlight">📱 Controles Touch para Celular:</p>
+                        <p>&bull; 🕹️ <strong>Analógico Virtual (Esquerda):</strong> Mover o herói em 360°</p>
+                        <p>&bull; ⚔️ <strong>Botão Atacar (Direita):</strong> Ataca com mira automática no monstro mais próximo (segure para disparo contínuo)</p>
+                        <p>&bull; 💨 <strong>Botão Dash:</strong> Esquiva rápida invulnerável</p>
+                        <p>&bull; ⚡ <strong>Botão Especial:</strong> Ativa o Supremo quando a barra carregar 100%</p>
+                        <p>&bull; 🌊 <strong>Onda de 50 Monstros:</strong> Elimine todos os 50 inimigos para liberar cartas de poder!</p>
+                    </div>
+                    <button class="btn-action" onclick="hideControlsModal()">Entendido!</button>
+                </div>
+            </div>
+
+            <!-- PAUSE -->
+            <div id="pause-modal" class="screen-layer hidden">
+                <div class="modal-box pause-modal-box">
+                    <h1 class="pause-title">⏸️ Jogo Pausado</h1>
+                    <p class="modal-subtext">Respire fundo antes de voltar ao combate!</p>
+                    <div id="pause-upgrades-list"></div>
+                    <div class="modal-buttons">
+                        <button class="btn-action" onclick="togglePauseGame()">▶️ Continuar</button>
+                        <button class="btn-action secondary" onclick="toggleFullscreen()">⛶ Tela Cheia</button>
+                        <button class="btn-action secondary" onclick="goToLobbyFromGame()">🏠 Sair para Lobby</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HUD MOBILE OTIMIZADO -->
+            <div id="hud" class="hidden">
+                <!-- Canto Esquerdo: Status do Campeão -->
+                <div class="mobile-hud-player">
+                    <div class="hud-avatar-icon" id="hud-avatar-icon">🛡️</div>
+                    <div class="player-bars-stack">
+                        <div class="hud-bar-row">
+                            <span class="bar-label bar-hp-label">HP</span>
+                            <div class="mobile-bar-bg"><div id="hp-bar" class="hp-bar"></div></div>
+                            <span id="hp-text" class="bar-val">190</span>
+                        </div>
+                        <div class="hud-bar-row">
+                            <span class="bar-label bar-mana-label">MP</span>
+                            <div class="mobile-bar-bg"><div id="mana-bar" class="mana-bar"></div></div>
+                            <span id="mana-text" class="bar-val">60</span>
+                        </div>
+                        <div class="hud-bar-row" id="special-bar-row">
+                            <span class="bar-label bar-sp-label" id="special-bar-label">SP</span>
+                            <div class="mobile-bar-bg"><div id="special-bar-fill" class="special-bar-fill"></div></div>
+                            <span id="special-bar-text" class="bar-val">0%</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Topo Central: Progresso da Onda de 50 Inimigos -->
+                <div class="mobile-hud-wave">
+                    <div class="wave-badge-title">
+                        <span>ONDA <span id="difficulty-text">1</span></span>
+                    </div>
+                    <div class="wave-bar-wrapper">
+                        <div class="wave-bar-fill" id="wave-bar"></div>
+                    </div>
+                    <div class="wave-counter-sub">
+                        <span id="wave-progress-text">0/50</span> &bull; Restam: <strong id="wave-enemies-left">50</strong>
+                    </div>
+                </div>
+
+                <!-- Canto Direito: Ações & Moedas -->
+                <div class="mobile-hud-actions">
+                    <div class="hud-buttons-row">
+                        <button class="mobile-hud-btn" onclick="toggleFullscreen()" title="Tela Cheia">⛶</button>
+                        <button class="mobile-hud-btn" onclick="togglePauseGame()" title="Pausar">⏸️</button>
+                    </div>
+                    <div class="mobile-hud-coins">
+                        <span class="coin-icon"></span>
+                        <span id="ingame-coins">0</span>
+                    </div>
+                    <div class="mobile-hud-kills">
+                        ⚔️ <span id="score-text">0</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BARRA DE MELHORIAS ATIVAS -->
+            <div class="active-upgrades-bar" id="active-upgrades-bar"></div>
+
+            <!-- CONTROLES TOUCH MOBILE VIRTUAIS -->
+            <div id="mobile-controls" class="mobile-controls hidden">
+                <div id="joystick-zone" class="joystick-zone">
+                    <div id="joystick-base" class="joystick-base">
+                        <div id="joystick-stick" class="joystick-stick"></div>
+                    </div>
+                </div>
+                
+                <div class="action-buttons-zone">
+                    <button id="btn-dash" class="mobile-btn btn-dash" aria-label="Esquiva">
+                        <span class="btn-icon">💨</span>
+                        <span class="btn-label">Dash</span>
+                    </button>
+                    <button id="btn-special" class="mobile-btn btn-special" aria-label="Especial">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-label" id="mobile-special-label">0%</span>
+                    </button>
+                    <button id="btn-attack" class="mobile-btn btn-attack" aria-label="Ataque">
+                        <span class="btn-icon">⚔️</span>
+                        <span class="btn-label">Atacar</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="banner-notification" class="banner-notification hidden">Nova Onda Iniciada!</div>
+            <div class="controls-hint" id="controls-hint">Joystick para Mover &bull; Segure Atacar para Mira Auto</div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+    </div>
+
+    <!-- SCRIPT DO JOGO -->
+    <script src="game.js"></script>
+</body>
+</html>
