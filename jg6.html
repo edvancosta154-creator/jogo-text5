@@ -36,9 +36,13 @@
 
                 <div class="lobby-content">
                     <div class="character-preview-card">
-                        <span class="equipped-badge" id="preview-class-badge">Guerreiro</span>
+                        <div class="preview-badges-stack">
+                            <span class="equipped-badge race-badge-preview" id="preview-race-badge">🧑 Humano</span>
+                            <span class="equipped-badge" id="preview-class-badge">Guerreiro</span>
+                        </div>
                         <canvas id="previewCanvas" width="130" height="130"></canvas>
                         <h3 id="preview-player-name">Herói</h3>
+                        <div class="preview-racial-hint" id="preview-racial-hint">⚡ Contra-ataque: Bloqueio & Golpe (5.5s)</div>
                         <p id="preview-hat-name">👑 Sem Chapéu</p>
                     </div>
 
@@ -101,8 +105,90 @@
                 </div>
 
                 <div class="header-titles">
-                    <h1 class="title-glow class-select-title">Escolha sua Classe</h1>
-                    <p class="subtitle">Cada herói possui atributos e especiais únicos na arena</p>
+                    <h1 class="title-glow class-select-title">Campeão: Raça & Classe</h1>
+                    <p class="subtitle">Escolha sua Raça para ter uma habilidade única e sua Classe para entrar no combate</p>
+                </div>
+
+                <!-- ETAPA 1: ESCOLHA DE RAÇA -->
+                <div class="selection-section-header">
+                    <span class="selection-step-tag">PASSO 1</span>
+                    <span class="selection-section-title">Escolha sua Raça (Habilidade Única de Combate)</span>
+                </div>
+
+                <div class="race-options-grid" id="race-options-grid">
+                    <div class="race-card active" id="race-card-humano" onclick="selectRace('humano')">
+                        <div class="race-card-header">
+                            <span class="race-card-icon">🧑</span>
+                            <div class="race-card-title-group">
+                                <h3>Humano</h3>
+                                <span class="race-ability-name">🛡️ Contra-ataque</span>
+                            </div>
+                            <span class="race-cd-tag">⏱️ 5.5s Recarga</span>
+                        </div>
+                        <p class="race-card-desc"><strong>Adaptação de Combate:</strong> Ative no momento exato antes de um ataque inimigo para bloquear 100% do dano e responder com um contra-ataque devastador em 360°!</p>
+                        <div class="race-card-perks">
+                            <span class="race-tag-perk">⚡ Bloqueio Preciso</span>
+                            <span class="race-tag-perk">💥 Dano em 360°</span>
+                            <span class="race-tag-perk">⚠️ Erro = Recarga</span>
+                        </div>
+                    </div>
+
+                    <div class="race-card" id="race-card-elfo" onclick="selectRace('elfo')">
+                        <div class="race-card-header">
+                            <span class="race-card-icon">🧝</span>
+                            <div class="race-card-title-group">
+                                <h3>Elfo</h3>
+                                <span class="race-ability-name">🔮 Prisão Arcana</span>
+                            </div>
+                            <span class="race-cd-tag">⏱️ 7.5s Recarga</span>
+                        </div>
+                        <p class="race-card-desc"><strong>Magia Arcana:</strong> Conjura um selo rúnico mágico no chão. Inimigos na área ficam aprisionados e sem se mover por até 2.2s, mas continuam vulneráveis a dano!</p>
+                        <div class="race-card-perks">
+                            <span class="race-tag-perk">🔒 Imobiliza Monstros</span>
+                            <span class="race-tag-perk">🎯 Duração 3.2s</span>
+                            <span class="race-tag-perk">🛡️ Desacelera Chefe</span>
+                        </div>
+                    </div>
+
+                    <div class="race-card" id="race-card-vampiro" onclick="selectRace('vampiro')">
+                        <div class="race-card-header">
+                            <span class="race-card-icon">🧛</span>
+                            <div class="race-card-title-group">
+                                <h3>Vampiro</h3>
+                                <span class="race-ability-name">🦇 Passo das Sombras</span>
+                            </div>
+                            <span class="race-cd-tag">⏱️ 4.5s Recarga</span>
+                        </div>
+                        <p class="race-card-desc"><strong>Predação Sombria:</strong> Desaparece em névoa negra e reaparece instantaneamente à frente (160px), desviando de perigos e surpreendendo monstros com dano de emboscada!</p>
+                        <div class="race-card-perks">
+                            <span class="race-tag-perk">💨 Teletransporte</span>
+                            <span class="race-tag-perk">🗡️ Dano de Emboscada</span>
+                            <span class="race-tag-perk">🌫️ Névoa das Sombras</span>
+                        </div>
+                    </div>
+
+                    <div class="race-card" id="race-card-demonio" onclick="selectRace('demonio')">
+                        <div class="race-card-header">
+                            <span class="race-card-icon">👿</span>
+                            <div class="race-card-title-group">
+                                <h3>Demônio</h3>
+                                <span class="race-ability-name">🔥 Fenda Infernal</span>
+                            </div>
+                            <span class="race-cd-tag">⏱️ 6.0s Recarga</span>
+                        </div>
+                        <p class="race-card-desc"><strong>Poder Infernal:</strong> Rasga o chão com rachaduras incandescentes. Após 1.1s de aviso telegrafado, a fenda explode em chamas que causam alto dano e interrompem ações!</p>
+                        <div class="race-card-perks">
+                            <span class="race-tag-perk">💥 Detonação em Área</span>
+                            <span class="race-tag-perk">⚠️ Aviso Telegrafado</span>
+                            <span class="race-tag-perk">🛑 Interrompe Golpes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ETAPA 2: ESCOLHA DE CLASSE -->
+                <div class="selection-section-header">
+                    <span class="selection-step-tag">PASSO 2</span>
+                    <span class="selection-section-title">Escolha sua Classe para Entrar na Batalha</span>
                 </div>
 
                 <div class="class-options">
@@ -172,7 +258,7 @@
                     </div>
                 </div>
 
-                <div class="class-footer-hint">Toque em um herói para iniciar o combate</div>
+                <div class="class-footer-hint">Toque em uma classe para iniciar o combate com a Raça selecionada</div>
             </div>
 
             <!-- MODAL DE MELHORIAS (ONDA DE 50 INIMIGOS) -->
@@ -254,12 +340,33 @@
                 <div class="modal-box controls-modal-box">
                     <h1 class="guide-title">Guia de Comandos</h1>
                     <div class="guide-content">
-                        <p class="guide-highlight">📱 Controles Touch para Celular:</p>
-                        <p>&bull; 🕹️ <strong>Analógico Virtual (Esquerda):</strong> Mover o herói em 360°</p>
-                        <p>&bull; ⚔️ <strong>Botão Atacar (Direita):</strong> Ataca com mira automática no monstro mais próximo (segure para disparo contínuo)</p>
-                        <p>&bull; 💨 <strong>Botão Dash:</strong> Esquiva rápida invulnerável</p>
-                        <p>&bull; ⚡ <strong>Botão Especial:</strong> Ativa o Supremo quando a barra carregar 100%</p>
-                        <p>&bull; 🌊 <strong>Onda de 50 Monstros:</strong> Elimine todos os 50 inimigos para liberar cartas de poder!</p>
+                        <p class="guide-highlight">📱 Controles Mobile Touch & Teclado (PC):</p>
+                        <p>&bull; 🕹️ <strong>Mover:</strong> Analógico Virtual (Esquerda) ou [W, A, S, D]</p>
+                        <p>&bull; ⚔️ <strong>Atacar:</strong> Botão Atacar (Segure para disparo contínuo com mira auto) ou [Espaço] / Clique Esquerdo</p>
+                        <p>&bull; 💨 <strong>Dash (Esquiva):</strong> Botão Dash ou [Shift] / Clique Direito</p>
+                        <p>&bull; ⚡ <strong>Especial de Classe:</strong> Botão Especial ou Tecla [E] (ao atingir 100% de carga)</p>
+                        <p>&bull; 🌟 <strong>Habilidade Racial Única:</strong> Botão Raça no Mobile ou Tecla [Q] / [R] no Teclado:</p>
+                        
+                        <div class="guide-races-list">
+                            <div class="guide-race-item">
+                                <span class="guide-race-name">🧑 Humano — Contra-ataque (CD: 5.5s):</span>
+                                <span>Entra em postura de guarda por 0.65s. Se receber golpe, bloqueia 100% do dano e desfere um contra-ataque devastador em 360°! Se errar o tempo, entra em recarga de 6.5s sem contra-ataque.</span>
+                            </div>
+                            <div class="guide-race-item">
+                                <span class="guide-race-name">🧝 Elfo — Prisão Arcana (CD: 7.5s):</span>
+                                <span>Cria um selo rúnico mágico no chão que dura 3.2s e imobiliza monstros na área por até 2.2s. Os monstros presos continuam recebendo dano. Em chefões, reduz velocidade em 65%.</span>
+                            </div>
+                            <div class="guide-race-item">
+                                <span class="guide-race-name">🧛 Vampiro — Passo das Sombras (CD: 4.5s):</span>
+                                <span>Desaparece em névoa negra e reaparece instantaneamente à frente (160px), desviando de ataques perigosos e surpreendendo inimigos com dano de emboscada.</span>
+                            </div>
+                            <div class="guide-race-item">
+                                <span class="guide-race-name">👿 Demônio — Fenda Infernal (CD: 6.0s):</span>
+                                <span>Abre rachaduras incandescentes no solo. Após 1.1s de aviso telegrafado, a fenda explode em chamas, causando dano massivo em área e interrompendo ações inimigas.</span>
+                            </div>
+                        </div>
+
+                        <p>&bull; 🌊 <strong>Onda de 50 Monstros:</strong> Elimine todos os 50 monstros e derrote o Chefão para escolher cartas de poder!</p>
                     </div>
                     <button class="btn-action" onclick="hideControlsModal()">Entendido!</button>
                 </div>
@@ -299,6 +406,16 @@
                             <span class="bar-label bar-sp-label" id="special-bar-label">SP</span>
                             <div class="mobile-bar-bg"><div id="special-bar-fill" class="special-bar-fill"></div></div>
                             <span id="special-bar-text" class="bar-val">0%</span>
+                        </div>
+                        <div class="hud-bar-row" id="racial-bar-row">
+                            <span class="bar-label bar-rc-label" id="racial-bar-label">RAÇA</span>
+                            <div class="mobile-bar-bg"><div id="racial-bar-fill" class="racial-bar-fill"></div></div>
+                            <span id="racial-bar-text" class="bar-val">PRONTO</span>
+                        </div>
+                        <div class="hud-bar-row" id="racial-bar-row">
+                            <span class="bar-label bar-rc-label" id="racial-bar-label">RAÇA</span>
+                            <div class="mobile-bar-bg"><div id="racial-bar-fill" class="racial-bar-fill"></div></div>
+                            <span id="racial-bar-text" class="bar-val">PRONTO</span>
                         </div>
                     </div>
                 </div>
@@ -366,15 +483,20 @@
                 </div>
                 
                 <div class="action-buttons-zone">
-                    <button id="btn-dash" class="mobile-btn btn-dash" aria-label="Esquiva">
+                    <button id="btn-dash" class="mobile-btn btn-dash" aria-label="Esquiva" title="Dash (Shift)">
                         <span class="btn-icon">💨</span>
                         <span class="btn-label">Dash</span>
                     </button>
-                    <button id="btn-special" class="mobile-btn btn-special" aria-label="Especial">
+                    <button id="btn-racial" class="mobile-btn btn-racial" aria-label="Habilidade Racial" title="Habilidade Racial (Q/R)">
+                        <span class="btn-icon" id="mobile-racial-icon">🛡️</span>
+                        <span class="btn-label" id="mobile-racial-label">Contra</span>
+                        <span class="racial-cd-cooldown" id="mobile-racial-cd"></span>
+                    </button>
+                    <button id="btn-special" class="mobile-btn btn-special" aria-label="Especial" title="Especial de Classe (E)">
                         <span class="btn-icon">⚡</span>
                         <span class="btn-label" id="mobile-special-label">0%</span>
                     </button>
-                    <button id="btn-attack" class="mobile-btn btn-attack" aria-label="Ataque">
+                    <button id="btn-attack" class="mobile-btn btn-attack" aria-label="Ataque" title="Atacar (Espaço)">
                         <span class="btn-icon">⚔️</span>
                         <span class="btn-label">Atacar</span>
                     </button>
@@ -382,7 +504,7 @@
             </div>
 
             <div id="banner-notification" class="banner-notification hidden">Nova Onda Iniciada!</div>
-            <div class="controls-hint" id="controls-hint">Joystick para Mover &bull; Segure Atacar para Mira Auto</div>
+            <div class="controls-hint" id="controls-hint">Joystick/WASD: Mover &bull; Espaço/Atacar: Mira Auto &bull; [Q/R]/Botão Raça: Poder Racial &bull; [E]: Especial</div>
             <canvas id="gameCanvas"></canvas>
         </div>
     </div>
