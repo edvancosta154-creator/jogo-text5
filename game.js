@@ -312,6 +312,128 @@ class SoundEngine {
             });
         } catch(e) {}
     }
+
+    playParryPrime() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(520, now);
+            osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.18);
+        } catch(e) {}
+    }
+
+    playParrySuccess() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc1 = this.ctx.createOscillator();
+            const gain1 = this.ctx.createGain();
+            osc1.type = 'sawtooth';
+            osc1.frequency.setValueAtTime(1200, now);
+            osc1.frequency.exponentialRampToValueAtTime(320, now + 0.25);
+            gain1.gain.setValueAtTime(0.35, now);
+            gain1.gain.exponentialRampToValueAtTime(0.01, now + 0.25);
+            osc1.connect(gain1);
+            gain1.connect(this.masterGain);
+            osc1.start(now);
+            osc1.stop(now + 0.25);
+
+            const osc2 = this.ctx.createOscillator();
+            const gain2 = this.ctx.createGain();
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(350, now);
+            osc2.frequency.exponentialRampToValueAtTime(90, now + 0.35);
+            gain2.gain.setValueAtTime(0.35, now);
+            gain2.gain.exponentialRampToValueAtTime(0.01, now + 0.35);
+            osc2.connect(gain2);
+            gain2.connect(this.masterGain);
+            osc2.start(now);
+            osc2.stop(now + 0.35);
+        } catch(e) {}
+    }
+
+    playArcanePrison() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const freqs = [392, 523, 659, 784, 1046];
+            freqs.forEach((freq, idx) => {
+                const osc = this.ctx.createOscillator();
+                const gain = this.ctx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now + idx * 0.04);
+                gain.gain.setValueAtTime(0.18, now + idx * 0.04);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + idx * 0.04 + 0.35);
+                osc.connect(gain);
+                gain.connect(this.masterGain);
+                osc.start(now + idx * 0.04);
+                osc.stop(now + idx * 0.04 + 0.35);
+            });
+        } catch(e) {}
+    }
+
+    playShadowStep() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(140, now);
+            osc.frequency.exponentialRampToValueAtTime(45, now + 0.16);
+            gain.gain.setValueAtTime(0.28, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.16);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.16);
+        } catch(e) {}
+    }
+
+    playHellRiftOpen() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(90, now);
+            osc.frequency.linearRampToValueAtTime(130, now + 0.2);
+            gain.gain.setValueAtTime(0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.3);
+        } catch(e) {}
+    }
+
+    playHellRiftExplode() {
+        if (!this.enabled || !this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(120, now);
+            osc.frequency.exponentialRampToValueAtTime(30, now + 0.45);
+            gain.gain.setValueAtTime(0.45, now);
+            gain.gain.exponentialRampToValueAtTime(0.01, now + 0.45);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.45);
+        } catch(e) {}
+    }
 }
 
 const audio = new SoundEngine();
@@ -619,6 +741,7 @@ let playerData = {
     highScore: 0,
     totalKills: 0,
     selectedClass: 'guerreiro',
+    selectedRace: 'humano',
     unlockedHats: ['hat_none'],
     equippedHat: 'hat_none'
 };
@@ -637,6 +760,7 @@ function loadSavedData() {
     } catch(e) {
         console.warn("Erro ao carregar dados salvos:", e);
     }
+    if (!playerData.selectedRace || !RACES[playerData.selectedRace]) playerData.selectedRace = 'humano';
     if (!playerData.unlockedHats.includes('hat_none')) playerData.unlockedHats.push('hat_none');
     updateCurrencyDisplays();
 }
@@ -664,6 +788,73 @@ function updateCurrencyDisplays() {
 /* ----------------------------------------------------
    CLASSES DE HERÓIS
 ---------------------------------------------------- */
+
+/* ----------------------------------------------------
+   SISTEMA DE RAÇAS COM HABILIDADES EXCLUSIVAS
+   Mecânicas únicas de combate sem bônus passivos de stats
+---------------------------------------------------- */
+const RACES = {
+    humano: {
+        id: 'humano',
+        name: 'Humano',
+        icon: '🧑',
+        abilityName: 'Contra-ataque',
+        abilityIcon: '🛡️',
+        cooldown: 5500, // 5.5s ao acertar o tempo
+        missCooldown: 6500, // 6.5s de penalidade se errar o tempo
+        parryWindow: 650, // 650ms de guarda
+        retaliationRadius: 130,
+        retaliationDmg: 140,
+        desc: 'Adaptação de Combate: Entra em guarda por 0.65s. Se receber um golpe, bloqueia 100% do dano e desfere um contra-ataque devastador em 360°. Se errar o tempo, entra em recarga de 6.5s sem contra-atacar.',
+        mechanic: 'Precisão e reação rápida contra ataques inimigos.',
+        color: '#3498db'
+    },
+    elfo: {
+        id: 'elfo',
+        name: 'Elfo',
+        icon: '🧝',
+        abilityName: 'Prisão Arcana',
+        abilityIcon: '🔮',
+        cooldown: 7500, // 7.5s de recarga
+        duration: 3200, // 3.2s de duração do selo
+        rootDuration: 2200, // 2.2s de imobilização
+        range: 220,
+        radius: 95,
+        desc: 'Magia Arcana: Conjura um selo rúnico mágico no chão. Inimigos na área ficam completamente imobilizados por até 2.2s, mas continuam vulneráveis a dano. Em chefões, reduz a velocidade em 65%.',
+        mechanic: 'Controle de campo de batalha e aglomeração de monstros.',
+        color: '#2ecc71'
+    },
+    vampiro: {
+        id: 'vampiro',
+        name: 'Vampiro',
+        icon: '🧛',
+        abilityName: 'Passo das Sombras',
+        abilityIcon: '🦇',
+        cooldown: 4500, // 4.5s de recarga
+        blinkDist: 160,
+        stealthDuration: 7, // ~120ms (sem invulnerabilidade prolongada)
+        ambushRadius: 65,
+        ambushDamage: 52,
+        desc: 'Predação Sombria: Desaparece em névoa negra e ressurge instantaneamente a 160px à frente, desviando de golpes e surpreendendo monstros com dano de emboscada.',
+        mechanic: 'Mobilidade agressiva, esquiva pontual e reposicionamento veloz.',
+        color: '#ff1744'
+    },
+    demonio: {
+        id: 'demonio',
+        name: 'Demônio',
+        icon: '👿',
+        abilityName: 'Fenda Infernal',
+        abilityIcon: '🔥',
+        cooldown: 6000, // 6.0s de recarga
+        telegraphDuration: 66, // 1.1s a 60fps (telegrafo para reação)
+        radius: 105,
+        damage: 135,
+        desc: 'Poder Infernal: Rasga o chão com rachaduras incandescentes. Após 1.1s de aviso telegrafado, a fenda explode em chamas devastadoras, causando alto dano em área e interrompendo ações inimigas.',
+        mechanic: 'Controle de zona por detonação retardada e interrupção.',
+        color: '#e67e22'
+    }
+};
+
 const CLASSES = {
     guerreiro: { name: 'Guerreiro', icon: '🛡️', type: 'guerreiro', maxHp: 190, maxMana: 60,  damage: 38, speed: 3.2, manaCost: 5,  cooldown: 280, dashCd: 1200 },
     mago:      { name: 'Mago',      icon: '🔮', type: 'mago',      maxHp: 95,  maxMana: 130, damage: 55, speed: 3.4, manaCost: 14, cooldown: 380, dashCd: 1400 },
@@ -704,6 +895,8 @@ let particleEffects = [];
 let shockwaveEffects = [];
 let dashGhosts = [];
 let shadowMinions = [];
+let arcanePrisonFields = [];
+let hellRifts = [];
 
 // Entidades de Chefão
 let activeBoss = null;
@@ -1392,6 +1585,8 @@ class Boss {
         this.hitFlash = 0;
         this.angle = 0;
         this.spiralAngle = 0;
+        this.isSlowedBySeal = false;
+        this.sealSlowTimer = 0;
     }
 
     takeDamage(amount, angle, knockbackForce = 2, isCrit = false) {
@@ -1495,13 +1690,22 @@ class Boss {
 
         this.angle = Math.atan2(player.y - this.y, player.x - this.x);
 
+        if (this.sealSlowTimer && this.sealSlowTimer > 0) {
+            this.sealSlowTimer -= dt;
+            this.isSlowedBySeal = true;
+        } else {
+            this.isSlowedBySeal = false;
+        }
+
+        const effectiveSpeed = this.isSlowedBySeal ? this.speed * 0.35 : this.speed;
+
         // Movimentação em direção ao jogador
         const distToPlayer = Math.hypot(player.x - this.x, player.y - this.y);
         const stopDist = (this.waveLevel === 2) ? 140 : 80;
 
         if (distToPlayer > stopDist) {
-            this.x += Math.cos(this.angle) * this.speed * dt;
-            this.y += Math.sin(this.angle) * this.speed * dt;
+            this.x += Math.cos(this.angle) * effectiveSpeed * dt;
+            this.y += Math.sin(this.angle) * effectiveSpeed * dt;
         }
 
         // Dano de Colisão
@@ -1663,6 +1867,266 @@ class Boss {
 /* ----------------------------------------------------
    CLASSE DO JOGADOR
 ---------------------------------------------------- */
+
+/* ----------------------------------------------------
+   ENTIDADE: PRISÃO ARCANA (HABILIDADE RACIAL DO ELFO)
+   Imobiliza temporariamente os monstros em área
+---------------------------------------------------- */
+class ArcanePrisonField {
+    constructor(x, y, damageBoost = 1.0) {
+        this.x = x;
+        this.y = y;
+        this.radius = 95;
+        this.life = 192; // ~3.2s a 60fps
+        this.maxLife = 192;
+        this.damageBoost = damageBoost;
+        this.rotation = 0;
+        this.pulse = 0;
+    }
+
+    update(dt) {
+        this.life -= dt;
+        this.rotation += 0.02 * dt;
+        this.pulse += 0.05 * dt;
+
+        if (particleEffects.length < 40 && Math.random() < 0.35) {
+            const a = Math.random() * Math.PI * 2;
+            const d = Math.random() * (this.radius - 8);
+            particleEffects.push(new Particle(this.x + Math.cos(a) * d, this.y + Math.sin(a) * d, '#2ecc71', 2.2, 1.8, 18));
+        }
+
+        // Imobiliza monstros normais no interior do selo
+        enemies.forEach(e => {
+            const dist = Math.hypot(e.x - this.x, e.y - this.y);
+            if (dist < this.radius + e.radius) {
+                e.isTrapped = true;
+                e.trappedTimer = Math.max(e.trappedTimer || 0, 30);
+            }
+        });
+
+        // Desacelera chefão se colidir com o selo
+        if (activeBoss) {
+            const distB = Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y);
+            if (distB < this.radius + activeBoss.radius) {
+                activeBoss.isSlowedBySeal = true;
+                activeBoss.sealSlowTimer = 25;
+            }
+        }
+
+        return this.life > 0;
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        const alpha = Math.min(1.0, this.life / 30);
+        ctx.globalAlpha = alpha;
+
+        // Círculo base luminoso
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(46, 204, 113, 0.09)';
+        ctx.fill();
+        ctx.strokeStyle = '#2ecc71';
+        ctx.lineWidth = 2;
+        ctx.setLineDash([8, 6]);
+        ctx.stroke();
+
+        // Anel rúnico giratório
+        ctx.save();
+        ctx.rotate(this.rotation);
+        ctx.strokeStyle = '#66fcf1';
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash([]);
+        ctx.beginPath();
+        ctx.arc(0, 0, this.radius * 0.72, 0, Math.PI * 2);
+        ctx.stroke();
+
+        // Símbolos rúnicos mágicos
+        const runes = ['ᚱ', 'ᚨ', 'ᛝ', 'ᛏ', 'ᛋ', 'ᚹ'];
+        ctx.font = '14px Arial';
+        ctx.fillStyle = '#66fcf1';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        for (let i = 0; i < 6; i++) {
+            const ang = (Math.PI * 2 / 6) * i;
+            const rx = Math.cos(ang) * (this.radius * 0.72);
+            const ry = Math.sin(ang) * (this.radius * 0.72);
+            ctx.fillText(runes[i], rx, ry);
+        }
+
+        // Pentagrama / Estrela arcana interna
+        ctx.beginPath();
+        for (let i = 0; i < 5; i++) {
+            const a = (Math.PI * 2 / 5) * i * 2;
+            const px = Math.cos(a) * (this.radius * 0.45);
+            const py = Math.sin(a) * (this.radius * 0.45);
+            if (i === 0) ctx.moveTo(px, py);
+            else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.strokeStyle = 'rgba(46, 204, 113, 0.4)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.restore();
+
+        // Pulso central de mana
+        const pulseR = (Math.sin(this.pulse) * 0.2 + 0.8) * (this.radius * 0.3);
+        ctx.beginPath();
+        ctx.arc(0, 0, pulseR, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(102, 252, 241, 0.18)';
+        ctx.fill();
+
+        ctx.restore();
+    }
+}
+
+/* ----------------------------------------------------
+   ENTIDADE: FENDA INFERNAL (HABILIDADE RACIAL DO DEMÔNIO)
+   Área de perigo telegrafada que explode após 1.1s
+---------------------------------------------------- */
+class HellRift {
+    constructor(x, y, damageBoost = 1.0, critChance = 0.05, critMultiplier = 2.0) {
+        this.x = x;
+        this.y = y;
+        this.radius = 105;
+        this.telegraphTimer = 66; // 1.1s a 60fps
+        this.maxTelegraph = 66;
+        this.hasDetonated = false;
+        this.damageBoost = damageBoost;
+        this.critChance = critChance;
+        this.critMultiplier = critMultiplier;
+        this.fissurePoints = [];
+        this.generateFissures();
+        this.detonationVisualTimer = 0;
+    }
+
+    generateFissures() {
+        for (let i = 0; i < 5; i++) {
+            const baseAngle = (Math.PI * 2 / 5) * i + (Math.random() - 0.5) * 0.4;
+            let curX = 0, curY = 0;
+            const branch = [{ x: 0, y: 0 }];
+            const segs = 4;
+            for (let s = 1; s <= segs; s++) {
+                const len = (this.radius / segs) * (0.8 + Math.random() * 0.4);
+                const ang = baseAngle + (Math.random() - 0.5) * 0.7;
+                curX += Math.cos(ang) * len;
+                curY += Math.sin(ang) * len;
+                branch.push({ x: curX, y: curY });
+            }
+            this.fissurePoints.push(branch);
+        }
+    }
+
+    update(dt) {
+        if (!this.hasDetonated) {
+            this.telegraphTimer -= dt;
+
+            if (particleEffects.length < 40 && Math.random() < 0.4) {
+                const a = Math.random() * Math.PI * 2;
+                const d = Math.random() * this.radius;
+                particleEffects.push(new Particle(this.x + Math.cos(a) * d, this.y + Math.sin(a) * d, '#e67e22', 2.5, 2.0, 14));
+            }
+
+            if (this.telegraphTimer <= 0) {
+                this.detonate();
+            }
+            return true;
+        } else {
+            this.detonationVisualTimer -= dt;
+            return this.detonationVisualTimer > 0;
+        }
+    }
+
+    detonate() {
+        this.hasDetonated = true;
+        this.detonationVisualTimer = 18;
+        audio.playHellRiftExplode();
+        screenShake = 6;
+        triggerHaptic([60, 40, 90]);
+
+        if (shockwaveEffects.length < 12) {
+            shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, this.radius * 1.25, '#ff1744', 4.5));
+            shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, this.radius * 0.8, '#f39c12', 3.5));
+        }
+
+        for (let i = 0; i < 16; i++) {
+            particleEffects.push(new Particle(this.x, this.y, (i % 2 === 0 ? '#ff1744' : '#f39c12'), 4.5, 3.5, 20));
+        }
+
+        const isCrit = Math.random() < this.critChance;
+        const finalDamage = 135 * this.damageBoost * (isCrit ? this.critMultiplier : 1.0);
+
+        damageTexts.push(new DamageText(this.x - 65, this.y - 40, "🔥 EXPLOSÃO INFERNAL!", "#ff3838", 18, true));
+
+        // Dano e interrupção em inimigos
+        enemies.forEach(e => {
+            const dist = Math.hypot(e.x - this.x, e.y - this.y);
+            if (dist < this.radius + e.radius) {
+                const angle = Math.atan2(e.y - this.y, e.x - this.x);
+                e.takeDamage(finalDamage, angle, 10, isCrit);
+                e.lastHit = Date.now() + 500; // Interrompe ataque
+            }
+        });
+
+        if (activeBoss) {
+            const distB = Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y);
+            if (distB < this.radius + activeBoss.radius) {
+                activeBoss.takeDamage(finalDamage * 0.85, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 3, isCrit);
+                activeBoss.actionCooldown += 45; // Interrompe ataque do chefe
+            }
+        }
+    }
+
+    draw() {
+        ctx.save();
+        ctx.translate(this.x, this.y);
+
+        if (!this.hasDetonated) {
+            const progress = 1 - (this.telegraphTimer / this.maxTelegraph);
+            const pulse = (Math.sin(Date.now() * 0.012) * 0.5 + 0.5);
+
+            // Área de perigo telegrafada
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(231, 76, 60, ${0.10 + progress * 0.18})`;
+            ctx.fill();
+            ctx.strokeStyle = `rgba(255, 69, 0, ${0.4 + pulse * 0.6})`;
+            ctx.lineWidth = 2 + progress * 1.5;
+            ctx.setLineDash([10, 6]);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            // Rachaduras incandescentes
+            this.fissurePoints.forEach(branch => {
+                ctx.beginPath();
+                ctx.moveTo(0, 0);
+                branch.forEach((pt, idx) => {
+                    if (idx > 0) ctx.lineTo(pt.x * (0.3 + progress * 0.7), pt.y * (0.3 + progress * 0.7));
+                });
+                ctx.strokeStyle = progress > 0.7 ? '#ffffff' : (progress > 0.4 ? '#ff9f43' : '#e74c3c');
+                ctx.lineWidth = 2.5 + progress * 2.0;
+                ctx.stroke();
+            });
+
+            // Brilho no epicentro
+            ctx.beginPath();
+            ctx.arc(0, 0, 16 + progress * 14, 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 234, 167, ${0.3 + progress * 0.5})`;
+            ctx.fill();
+        } else {
+            const decay = this.detonationVisualTimer / 18;
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius * (1.2 - decay * 0.2), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 69, 0, ${decay * 0.35})`;
+            ctx.fill();
+        }
+
+        ctx.restore();
+    }
+}
+
 class Player {
     constructor(classKey) {
         const config = CLASSES[classKey];
@@ -1743,6 +2207,20 @@ class Player {
         this.vampireFrenzyTimer = 0;
         this.isImmortal = false;
         this.frenzyTick = 0;
+
+        // Habilidade Racial Única
+        this.race = playerData.selectedRace || 'humano';
+        this.raceConfig = RACES[this.race] || RACES.humano;
+        this.raceName = this.raceConfig.name;
+        this.raceIcon = this.raceConfig.icon;
+        this.racialAbilityName = this.raceConfig.abilityName;
+        this.racialCooldown = this.raceConfig.cooldown;
+        this.lastRacialUseTime = 0;
+        this.currentRacialCooldown = this.racialCooldown;
+        this.isParrying = false;
+        this.parryTimer = 0;
+        this.isShadowStepping = false;
+        this.shadowStepTimer = 0;
 
         this.applyHatPassives();
     }
@@ -1897,8 +2375,149 @@ class Player {
         }
     }
 
+
+    useRacialAbility() {
+        if (!gameRunning || gamePaused || this.hp <= 0) return;
+        const now = Date.now();
+        const cd = this.currentRacialCooldown || this.racialCooldown;
+        if (now - this.lastRacialUseTime < cd) {
+            return;
+        }
+
+        if (this.race === 'humano') {
+            this.isParrying = true;
+            this.parryTimer = this.raceConfig.parryWindow; // 650ms de guarda
+            this.lastRacialUseTime = now;
+            this.currentRacialCooldown = this.raceConfig.missCooldown; // 6.5s se errar
+            audio.playParryPrime();
+            triggerHaptic(25);
+            damageTexts.push(new DamageText(this.x - 55, this.y - 30, "🛡️ GUARDA ATIVA!", "#3498db", 15, true));
+        } else if (this.race === 'elfo') {
+            this.lastRacialUseTime = now;
+            this.currentRacialCooldown = this.raceConfig.cooldown;
+            audio.playArcanePrison();
+            triggerHaptic(30);
+
+            let targetX = this.x + Math.cos(this.angle) * 150;
+            let targetY = this.y + Math.sin(this.angle) * 150;
+            let nearest = activeBoss || enemies[0];
+            if (nearest) {
+                const d = Math.hypot(nearest.x - this.x, nearest.y - this.y);
+                if (d < this.raceConfig.range) {
+                    targetX = nearest.x;
+                    targetY = nearest.y;
+                }
+            }
+            targetX = Math.max(90, Math.min(canvasWidth - 90, targetX));
+            targetY = Math.max(90, Math.min(canvasHeight - 90, targetY));
+
+            arcanePrisonFields.push(new ArcanePrisonField(targetX, targetY, this.damageBoost));
+            damageTexts.push(new DamageText(targetX - 55, targetY - 35, "🔮 PRISÃO ARCANA!", "#2ecc71", 16, true));
+        } else if (this.race === 'vampiro') {
+            this.lastRacialUseTime = now;
+            this.currentRacialCooldown = this.raceConfig.cooldown;
+            audio.playShadowStep();
+            triggerHaptic(25);
+
+            // Ponto de partida: névoa sombria
+            for (let i = 0; i < 8; i++) {
+                particleEffects.push(new Particle(this.x, this.y, (i % 2 === 0 ? '#ff1744' : '#2c003e'), 3.5, 3.0, 16));
+            }
+            if (shockwaveEffects.length < 10) {
+                shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 45, '#2c003e', 3));
+            }
+
+            const moveAngle = (joystickActive && (joystickVector.x !== 0 || joystickVector.y !== 0))
+                ? Math.atan2(joystickVector.y, joystickVector.x)
+                : this.angle;
+
+            let destX = this.x + Math.cos(moveAngle) * this.raceConfig.blinkDist;
+            let destY = this.y + Math.sin(moveAngle) * this.raceConfig.blinkDist;
+
+            destX = Math.max(this.radius + 10, Math.min(canvasWidth - this.radius - 10, destX));
+            destY = Math.max(this.radius + 10, Math.min(canvasHeight - this.radius - 10, destY));
+
+            this.isShadowStepping = true;
+            this.shadowStepTimer = 7; // ~120ms (sem invulnerabilidade prolongada)
+
+            this.x = destX;
+            this.y = destY;
+
+            // Ponto de chegada: explosão de névoa e golpe de emboscada
+            for (let i = 0; i < 8; i++) {
+                particleEffects.push(new Particle(this.x, this.y, '#ff1744', 3.5, 3.0, 16));
+            }
+            clawVisuals.push(new ClawSlashEffect(this.x, this.y, moveAngle, 65));
+
+            const ambushDmg = this.raceConfig.ambushDamage * this.damageBoost;
+            enemies.forEach(e => {
+                const dist = Math.hypot(e.x - this.x, e.y - this.y);
+                if (dist < this.raceConfig.ambushRadius + e.radius) {
+                    e.takeDamage(ambushDmg, Math.atan2(e.y - this.y, e.x - this.x), 5);
+                }
+            });
+            if (activeBoss) {
+                const distB = Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y);
+                if (distB < this.raceConfig.ambushRadius + activeBoss.radius) {
+                    activeBoss.takeDamage(ambushDmg, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 2);
+                }
+            }
+
+            damageTexts.push(new DamageText(this.x - 65, this.y - 30, "🦇 PASSO DAS SOMBRAS!", "#ff1744", 15, true));
+        } else if (this.race === 'demonio') {
+            this.lastRacialUseTime = now;
+            this.currentRacialCooldown = this.raceConfig.cooldown;
+            audio.playHellRiftOpen();
+            triggerHaptic(30);
+
+            let targetX = this.x + Math.cos(this.angle) * 110;
+            let targetY = this.y + Math.sin(this.angle) * 110;
+
+            targetX = Math.max(95, Math.min(canvasWidth - 95, targetX));
+            targetY = Math.max(95, Math.min(canvasHeight - 95, targetY));
+
+            hellRifts.push(new HellRift(targetX, targetY, this.damageBoost, this.critChance, this.critMultiplier));
+            damageTexts.push(new DamageText(targetX - 50, targetY - 25, "⚠️ FENDA INFERNAL!", "#e67e22", 15, true));
+        }
+
+        updateHUD();
+    }
+
     takeDamage(amount) {
-        if (this.isDashing || this.isImmortal) return;
+        if (this.isDashing || this.isImmortal || this.isShadowStepping) return;
+
+        // CONTRA-ATAQUE HUMANO: Bloqueia 100% do golpe e contra-ataca em 360 graus
+        if (this.isParrying) {
+            this.isParrying = false;
+            this.parryTimer = 0;
+            this.currentRacialCooldown = this.raceConfig.cooldown; // Recompensa com CD normal de 5.5s
+            this.lastRacialUseTime = Date.now();
+
+            audio.playParrySuccess();
+            screenShake = 6;
+            triggerHaptic([50, 40, 100]);
+
+            damageTexts.push(new DamageText(this.x - 75, this.y - 45, "⚡ CONTRA-ATAQUE PERFEITO! ⚡", "#f1c40f", 20, true));
+            shockwaveEffects.push(new ShockwaveEffect(this.x, this.y, 140, '#f1c40f', 5));
+            slashVisuals.push(new SlashEffect(this.x, this.y, Math.random() * Math.PI * 2, 140, '#f1c40f'));
+            slashVisuals.push(new SlashEffect(this.x, this.y, Math.random() * Math.PI * 2, 140, '#ffffff'));
+
+            const counterDmg = this.raceConfig.retaliationDmg * this.damageBoost;
+            enemies.forEach(e => {
+                const dist = Math.hypot(e.x - this.x, e.y - this.y);
+                if (dist < this.raceConfig.retaliationRadius + e.radius) {
+                    e.takeDamage(counterDmg, Math.atan2(e.y - this.y, e.x - this.x), 11, true);
+                }
+            });
+            if (activeBoss) {
+                const distB = Math.hypot(activeBoss.x - this.x, activeBoss.y - this.y);
+                if (distB < this.raceConfig.retaliationRadius + activeBoss.radius) {
+                    activeBoss.takeDamage(counterDmg * 1.15, Math.atan2(activeBoss.y - this.y, activeBoss.x - this.x), 4, true);
+                }
+            }
+            updateHUD();
+            return; // Dano totalmente bloqueado!
+        }
 
         let actualDamage = amount * Math.max(0.15, 1 - this.damageReduction);
         triggerHaptic(18);
@@ -1955,6 +2574,25 @@ class Player {
     }
 
     updateTimers(dt) {
+        // Contra-Ataque Humano (Guarda ativa)
+        if (this.isParrying) {
+            this.parryTimer -= (dt * 16.67);
+            if (this.parryTimer <= 0) {
+                this.isParrying = false;
+                this.parryTimer = 0;
+                damageTexts.push(new DamageText(this.x - 45, this.y - 25, "❌ ERROU O TEMPO!", "#95a5a6", 13));
+                updateHUD();
+            }
+        }
+
+        // Furtividade do Passo das Sombras (Vampiro)
+        if (this.isShadowStepping) {
+            this.shadowStepTimer -= dt;
+            if (this.shadowStepTimer <= 0) {
+                this.isShadowStepping = false;
+            }
+        }
+
         // Modo Fogo (Guerreiro)
         if (this.isFireMode) {
             this.fireModeTimer -= (dt / 60);
@@ -2421,6 +3059,65 @@ class Player {
                 targetCtx.fillRect(8, -2, 6, 4);
             }
 
+            // Barreira de Bloqueio do Humano
+            if (this.isParrying) {
+                targetCtx.save();
+                targetCtx.beginPath();
+                targetCtx.arc(0, 0, this.radius + 12, 0, Math.PI * 2);
+                targetCtx.strokeStyle = '#f1c40f';
+                targetCtx.lineWidth = 3;
+                targetCtx.setLineDash([8, 6]);
+                targetCtx.stroke();
+                targetCtx.fillStyle = 'rgba(241, 196, 15, 0.25)';
+                targetCtx.fill();
+                targetCtx.restore();
+            }
+
+            // Traços Visuais de Raça no Campeão
+            if (this.race === 'humano') {
+                targetCtx.fillStyle = '#95a5a6';
+                targetCtx.fillRect(-14, -14, 5, 8);
+                targetCtx.fillRect(-14, 6, 5, 8);
+            } else if (this.race === 'elfo') {
+                targetCtx.fillStyle = '#2ecc71';
+                targetCtx.beginPath();
+                targetCtx.moveTo(-4, -this.radius);
+                targetCtx.lineTo(-14, -this.radius - 8);
+                targetCtx.lineTo(-8, -this.radius + 4);
+                targetCtx.closePath();
+                targetCtx.fill();
+
+                targetCtx.beginPath();
+                targetCtx.moveTo(-4, this.radius);
+                targetCtx.lineTo(-14, this.radius + 8);
+                targetCtx.lineTo(-8, this.radius - 4);
+                targetCtx.closePath();
+                targetCtx.fill();
+            } else if (this.race === 'vampiro') {
+                targetCtx.fillStyle = '#ff1744';
+                targetCtx.beginPath();
+                targetCtx.arc(6, -4, 2.5, 0, Math.PI * 2);
+                targetCtx.arc(6, 4, 2.5, 0, Math.PI * 2);
+                targetCtx.fill();
+            } else if (this.race === 'demonio') {
+                targetCtx.fillStyle = '#1a0003';
+                targetCtx.beginPath();
+                targetCtx.moveTo(-4, -10);
+                targetCtx.lineTo(6, -20);
+                targetCtx.lineTo(0, -8);
+                targetCtx.closePath();
+                targetCtx.fill();
+                targetCtx.beginPath();
+                targetCtx.moveTo(-4, 10);
+                targetCtx.lineTo(6, 20);
+                targetCtx.lineTo(0, 8);
+                targetCtx.closePath();
+                targetCtx.fill();
+                targetCtx.fillStyle = '#ff3838';
+                targetCtx.fillRect(7, -4, 3, 2);
+                targetCtx.fillRect(7, 2, 3, 2);
+            }
+
             this.drawHat(targetCtx, this.equippedHat);
         }
 
@@ -2599,6 +3296,8 @@ class Enemy {
         this.knockbackX = 0;
         this.knockbackY = 0;
         this.hitFlash = 0;
+        this.isTrapped = false;
+        this.trappedTimer = 0;
     }
 
     takeDamage(amount, angle, knockbackForce = 6, isCrit = false) {
@@ -2715,11 +3414,30 @@ class Enemy {
             ctx.fillRect(-3, -3, 6, 6);
         }
 
+        if (this.trappedTimer && this.trappedTimer > 0) {
+            ctx.strokeStyle = '#2ecc71';
+            ctx.lineWidth = 2.5;
+            ctx.setLineDash([4, 4]);
+            ctx.beginPath();
+            ctx.arc(0, 0, this.radius + 4, 0, Math.PI * 2);
+            ctx.stroke();
+            ctx.setLineDash([]);
+        }
+
         ctx.restore();
     }
 
     update(dt) {
         if (!player) return;
+
+        // Efeito da Prisão Arcana (Elfo): Monstros presos não se movem nem atacam
+        if (this.trappedTimer && this.trappedTimer > 0) {
+            this.trappedTimer -= dt;
+            if (particleEffects.length < 35 && Math.random() < 0.25) {
+                particleEffects.push(new Particle(this.x, this.y, '#2ecc71', 2, 1.5, 8));
+            }
+            return;
+        }
 
         if (Math.abs(this.knockbackX) > 0.1 || Math.abs(this.knockbackY) > 0.1) {
             this.x += this.knockbackX * dt;
@@ -3071,6 +3789,20 @@ function equipHat(hatId) {
 
 let previewRotation = 0;
 
+function selectRace(raceKey) {
+    if (!RACES[raceKey]) return;
+    audio.init();
+    audio.playCoin();
+    playerData.selectedRace = raceKey;
+    savePlayerData();
+
+    document.querySelectorAll('.race-card').forEach(c => c.classList.remove('active'));
+    const activeCard = document.getElementById(`race-card-${raceKey}`);
+    if (activeCard) activeCard.classList.add('active');
+
+    renderLobbyPreview();
+}
+
 function renderLobbyPreview() {
     const pCanvas = document.getElementById('previewCanvas');
     if (!pCanvas) return;
@@ -3085,13 +3817,28 @@ function renderLobbyPreview() {
 
     tempPlayer.draw(pCtx, true);
 
+    const raceBadge = document.getElementById('preview-race-badge');
     const badge = document.getElementById('preview-class-badge');
     const name = document.getElementById('preview-player-name');
     const hat = document.getElementById('preview-hat-name');
-    if (badge) badge.innerText = tempPlayer.className;
-    if (name) name.innerText = `Herói ${tempPlayer.className}`;
+    const racialHint = document.getElementById('preview-racial-hint');
+
+    if (raceBadge && tempPlayer.raceConfig) {
+        raceBadge.innerText = `${tempPlayer.raceConfig.icon} ${tempPlayer.raceConfig.name}`;
+    }
+    if (badge) badge.innerText = `${tempPlayer.classIcon} ${tempPlayer.className}`;
+    if (name) name.innerText = `Herói ${tempPlayer.raceName} ${tempPlayer.className}`;
+    if (racialHint && tempPlayer.raceConfig) {
+        racialHint.innerText = `⚡ ${tempPlayer.raceConfig.abilityName} (${(tempPlayer.raceConfig.cooldown / 1000).toFixed(1)}s)`;
+    }
     const hatObj = SHOP_HATS.find(h => h.id === playerData.equippedHat);
     if (hat) hat.innerText = hatObj ? `${hatObj.icon} ${hatObj.name}` : '❌ Sem Chapéu';
+
+    const activeRaceCard = document.getElementById(`race-card-${playerData.selectedRace}`);
+    if (activeRaceCard && !activeRaceCard.classList.contains('active')) {
+        document.querySelectorAll('.race-card').forEach(c => c.classList.remove('active'));
+        activeRaceCard.classList.add('active');
+    }
 }
 
 function renderShopPreviewCanvas(previewHat) {
@@ -3183,6 +3930,8 @@ function startGameWithClass(classKey) {
     bossTelegraphs = [];
     bossShockwaveRings = [];
     shadowMinions = [];
+    arcanePrisonFields = [];
+    hellRifts = [];
     screenShake = 0;
     enemyHpMultiplier = 1.0;
     enemySpeedMultiplier = 1.0;
@@ -3389,6 +4138,55 @@ function updateHUD() {
             }
         }
 
+        // Botão & Barra de Habilidade Racial
+        const btnRacial = document.getElementById('btn-racial');
+        const racialIcon = document.getElementById('mobile-racial-icon');
+        const racialLabel = document.getElementById('mobile-racial-label');
+        const racialCdOverlay = document.getElementById('mobile-racial-cd');
+        const rcBar = document.getElementById('racial-bar-fill');
+        const rcText = document.getElementById('racial-bar-text');
+
+        if (btnRacial && racialIcon && racialLabel && racialCdOverlay && player.raceConfig) {
+            racialIcon.innerText = player.raceConfig.abilityIcon;
+            const now = Date.now();
+            const cd = player.currentRacialCooldown || player.racialCooldown;
+            const remainingMs = Math.max(0, cd - (now - player.lastRacialUseTime));
+
+            if (player.isParrying) {
+                btnRacial.classList.remove('cooling');
+                btnRacial.classList.add('ready');
+                racialLabel.innerText = "DEFESA!";
+                racialCdOverlay.innerText = "";
+                if (rcBar && rcText) {
+                    rcBar.style.width = "100%";
+                    rcBar.style.background = "linear-gradient(90deg, #f1c40f, #ffffff)";
+                    rcText.innerText = "DEFESA!";
+                }
+            } else if (remainingMs > 0) {
+                btnRacial.classList.add('cooling');
+                btnRacial.classList.remove('ready');
+                const remSec = (remainingMs / 1000).toFixed(1);
+                racialLabel.innerText = `${remSec}s`;
+                racialCdOverlay.innerText = `${remSec}s`;
+                if (rcBar && rcText) {
+                    const pct = Math.max(0, 100 - (remainingMs / cd) * 100);
+                    rcBar.style.width = `${pct}%`;
+                    rcBar.style.background = "linear-gradient(90deg, #7f8c8d, #3498db)";
+                    rcText.innerText = `${remSec}s`;
+                }
+            } else {
+                btnRacial.classList.remove('cooling');
+                btnRacial.classList.add('ready');
+                racialLabel.innerText = "PRONTO";
+                racialCdOverlay.innerText = "";
+                if (rcBar && rcText) {
+                    rcBar.style.width = "100%";
+                    rcBar.style.background = "linear-gradient(90deg, #2980b9, #66fcf1)";
+                    rcText.innerText = "PRONTO";
+                }
+            }
+        }
+
         // Onda e Progresso
         checkWaveProgress();
     }
@@ -3524,6 +4322,25 @@ function initTouchControls() {
         btnSpecial.addEventListener('touchend', endSpecial, { passive: false });
         btnSpecial.addEventListener('touchcancel', endSpecial, { passive: false });
     }
+
+    // BOTÃO DE HABILIDADE RACIAL TOUCH
+    const btnRacial = document.getElementById('btn-racial');
+    if (btnRacial) {
+        btnRacial.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            audio.init();
+            btnRacial.classList.add('pressed');
+            triggerHaptic(20);
+            if (player && gameRunning && !gamePaused) player.useRacialAbility();
+        }, { passive: false });
+
+        const endRacial = (e) => {
+            e.preventDefault();
+            btnRacial.classList.remove('pressed');
+        };
+        btnRacial.addEventListener('touchend', endRacial, { passive: false });
+        btnRacial.addEventListener('touchcancel', endRacial, { passive: false });
+    }
 }
 
 // TOQUE DIRETO NO CANVÁS (MIRA OU DISPARO DIRETO)
@@ -3570,6 +4387,9 @@ window.addEventListener('keydown', (e) => {
     }
     if ((e.key === 'e' || e.key === 'E') && gameRunning && !gamePaused) {
         if (player) player.triggerSpecialAbility();
+    }
+    if ((e.key === 'q' || e.key === 'Q' || e.key === 'r' || e.key === 'R') && gameRunning && !gamePaused) {
+        if (player) player.useRacialAbility();
     }
     if (e.key === 'Escape' || e.key === 'p' || e.key === 'P') {
         togglePauseGame();
@@ -3639,6 +4459,24 @@ function gameLoop(currentTime) {
                 bossTelegraphs.splice(i, 1);
             } else {
                 bossTelegraphs[i].draw();
+            }
+        }
+
+        // Selos da Prisão Arcana (Elfo)
+        for (let i = arcanePrisonFields.length - 1; i >= 0; i--) {
+            if (!arcanePrisonFields[i].update(dt)) {
+                arcanePrisonFields.splice(i, 1);
+            } else {
+                arcanePrisonFields[i].draw();
+            }
+        }
+
+        // Fendas Infernais (Demônio)
+        for (let i = hellRifts.length - 1; i >= 0; i--) {
+            if (!hellRifts[i].update(dt)) {
+                hellRifts.splice(i, 1);
+            } else {
+                hellRifts[i].draw();
             }
         }
 
