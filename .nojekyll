@@ -1,0 +1,237 @@
+// Simulação de ambiente DOM e Canvas para testar game.js no Node.js
+const fs = require('fs');
+const path = require('path');
+const vm = require('vm');
+
+// Mock DOM
+global.window = {
+    innerWidth: 800,
+    innerHeight: 600,
+    devicePixelRatio: 1,
+    addEventListener: () => {}
+};
+global.document = {
+    getElementById: (id) => {
+        return {
+            id,
+            innerText: '',
+            innerHTML: '',
+            style: {},
+            classList: {
+                add: () => {},
+                remove: () => {},
+                contains: () => false,
+                toggle: () => {}
+            },
+            addEventListener: () => {},
+            getContext: () => ({
+                setTransform: () => {},
+                clearRect: () => {},
+                beginPath: () => {},
+                arc: () => {},
+                fill: () => {},
+                stroke: () => {},
+                save: () => {},
+                restore: () => {},
+                translate: () => {},
+                rotate: () => {},
+                fillRect: () => {},
+                fillText: () => {},
+                moveTo: () => {},
+                lineTo: () => {},
+                closePath: () => {},
+                setLineDash: () => {},
+                ellipse: () => {}
+            }),
+            getBoundingClientRect: () => ({ left: 0, top: 0, width: 100, height: 100 })
+        };
+    },
+    querySelectorAll: () => [],
+    addEventListener: () => {}
+};
+global.localStorage = {
+    data: {},
+    getItem: (k) => global.localStorage.data[k] || null,
+    setItem: (k, v) => { global.localStorage.data[k] = v; }
+};
+global.performance = { now: () => Date.now() };
+global.requestAnimationFrame = () => {};
+global.setInterval = () => 1;
+global.clearInterval = () => {};
+global.setTimeout = (fn) => fn();
+
+// Carrega game.js no contexto global
+let gameCode = fs.readFileSync(path.join(__dirname, 'game.js'), 'utf-8');
+// Converte variáveis top-level var/const/let para propriedades de global para que os testes tenham acesso
+vm.runInThisContext(gameCode);
+
+console.log("=== INICIANDO TESTES DO SISTEMA DE RAÇAS ===");
+
+let passedTests = 0;
+let totalTests = 0;
+
+function assert(condition, message) {
+    totalTests++;
+    if (condition) {
+        console.log(`✅ [PASS] ${message}`);
+        passedTests++;
+    } else {
+        console.error(`❌ [FAIL] ${message}`);
+    }
+}
+
+// TESTE 1: Definições de Raças
+assert(typeof RACES === 'object', "Objeto RACES está definido");
+assert(Object.keys(RACES).length === 4, "Existem exatamente 4 raças definidas (Humano, Elfo, Vampiro, Demônio)");
+assert(RACES.humano && RACES.humano.abilityName === 'Contra-ataque', "Humano possui habilidade Contra-ataque");
+assert(RACES.elfo && RACES.elfo.abilityName === 'Prisão Arcana', "Elfo possui habilidade Prisão Arcana");
+assert(RACES.vampiro && RACES.vampiro.abilityName === 'Passo das Sombras', "Vampiro possui habilidade Passo das Sombras");
+assert(RACES.demonio && RACES.demonio.abilityName === 'Fenda Infernal', "Demônio possui habilidade Fenda Infernal");
+
+// TESTE 2: Inicialização de Jogador Humano e Contra-Ataque com Sucesso
+selectRace('humano');
+let p = new Player('guerreiro');
+assert(p.race === 'humano', "Jogador inicializado como Humano");
+assert(p.racialAbilityName === 'Contra-ataque', "Habilidade racial é Contra-ataque");
+assert(!p.isParrying, "Jogador inicia fora da postura de bloqueio");
+
+// Ativa a habilidade
+gameRunning = true;
+gamePaused = false;
+p.useRacialAbility();
+assert(p.isParrying === true, "Humano entrou em postura de bloqueio (isParrying = true)");
+assert(p.parryTimer === 650, "Janela de bloqueio configurada para 650ms");
+
+// Inimigo ataca durante a janela -> Bloqueio perfeito!
+let enemy = new Enemy();
+enemy.x = p.x + 40;
+enemy.y = p.y;
+enemies = [enemy];
+const initialHp = p.hp;
+const initialEnemyHp = enemy.hp;
+
+p.takeDamage(40);
+assert(p.hp === initialHp, "Dano de 40 foi 100% bloqueado pelo Contra-ataque (HP permaneceu intacto)");
+assert(enemy.hp < initialEnemyHp, "Contra-ataque retaliou e causou dano ao inimigo");
+assert(!p.isParrying, "Postura de bloqueio encerrou após sucesso");
+assert(p.currentRacialCooldown === 5500, "Cooldown reduzido para 5.5s como recompensa de acerto de tempo");
+
+// TESTE 3: Falha no timing do Humano (erro de tempo)
+p.lastRacialUseTime = 0; // reseta cooldown para teste
+p.useRacialAbility();
+assert(p.isParrying === true, "Humano ativou guarda novamente");
+// Simula passagem de tempo sem receber dano (>650ms)
+p.updateTimers(45); // 45 * 16.67ms = ~750ms
+assert(p.isParrying === false, "Janela de bloqueio expirou por falta de ataque inimigo");
+assert(p.currentRacialCooldown === 6500, "Penalidade aplicada: Cooldown de 6.5s sem direito a contra-ataque");
+
+// TESTE 4: Elfo e Prisão Arcana
+selectRace('elfo');
+let elfPlayer = new Player('mago');
+assert(elfPlayer.race === 'elfo', "Jogador selecionado como Elfo");
+player = elfPlayer;
+arcanePrisonFields = [];
+
+let monsterToTrap = new Enemy();
+monsterToTrap.x = elfPlayer.x + 80;
+monsterToTrap.y = elfPlayer.y;
+enemies = [monsterToTrap];
+
+elfPlayer.useRacialAbility();
+assert(arcanePrisonFields.length === 1, "Selo da Prisão Arcana gerado com sucesso");
+
+// Atualiza o campo de prisão arcana
+arcanePrisonFields[0].update(1);
+assert(monsterToTrap.isTrapped === true, "Monstro foi imobilizado pelo selo mágico");
+assert(monsterToTrap.trappedTimer > 0, "Monstro recebeu timer de aprisionamento");
+
+// Testa movimento do monstro enquanto preso
+const posXBefore = monsterToTrap.x;
+monsterToTrap.update(1);
+assert(monsterToTrap.x === posXBefore, "Monstro não se moveu em direção ao jogador enquanto aprisionado");
+
+// Monstro ainda pode receber dano normalmente
+monsterToTrap.takeDamage(30, 0, 0);
+assert(monsterToTrap.hp === monsterToTrap.maxHp - 30, "Monstro preso recebe dano normalmente");
+
+// TESTE 5: Vampiro e Passo das Sombras
+selectRace('vampiro');
+let vampirePlayer = new Player('assassino');
+player = vampirePlayer;
+vampirePlayer.x = 200;
+vampirePlayer.y = 200;
+vampirePlayer.angle = 0; // Apontando para direita (x+)
+
+let nearbyEnemy = new Enemy();
+nearbyEnemy.x = 360;
+nearbyEnemy.y = 200;
+enemies = [nearbyEnemy];
+const enemyHpBeforeAmbush = nearbyEnemy.hp;
+
+vampirePlayer.useRacialAbility();
+assert(vampirePlayer.x === 360, "Vampiro teletransportou 160px para frente via Passo das Sombras");
+assert(vampirePlayer.isShadowStepping === true, "Vampiro entrou na transição rápida de névoa");
+assert(nearbyEnemy.hp < enemyHpBeforeAmbush, "Inimigo no ponto de chegada recebeu dano de emboscada");
+
+// Respeito aos limites do cenário
+vampirePlayer.x = 790;
+vampirePlayer.y = 200;
+vampirePlayer.angle = 0;
+vampirePlayer.lastRacialUseTime = 0;
+vampirePlayer.useRacialAbility();
+assert(vampirePlayer.x <= 800 - vampirePlayer.radius, "Passo das Sombras respeitou a borda da arena (não saiu da tela)");
+
+// TESTE 6: Demônio e Fenda Infernal
+selectRace('demonio');
+let demonPlayer = new Player('guerreiro');
+player = demonPlayer;
+demonPlayer.x = 200;
+demonPlayer.y = 200;
+demonPlayer.angle = 0;
+hellRifts = [];
+
+demonPlayer.useRacialAbility();
+assert(hellRifts.length === 1, "Fenda Infernal foi aberta no chão");
+let rift = hellRifts[0];
+assert(!rift.hasDetonated, "Fenda ainda não explodiu (está em fase de aviso telegrafado com rachaduras)");
+
+let enemyInRift = new Enemy();
+enemyInRift.x = rift.x;
+enemyInRift.y = rift.y;
+enemies = [enemyInRift];
+const enemyHpBeforeRift = enemyInRift.hp;
+
+// Avança o tempo até a explosão (66 frames / 1.1s)
+for (let f = 0; f < 70; f++) {
+    rift.update(1);
+}
+assert(rift.hasDetonated === true, "Fenda Infernal detonou após o intervalo telegrafado de 1.1s");
+assert(enemyInRift.hp < enemyHpBeforeRift, "Inimigo na área da fenda sofreu dano massivo da explosão");
+
+// TESTE 7: Especiais de Classe Preservados
+let warrior = new Player('guerreiro');
+warrior.fury = 100;
+warrior.triggerSpecialAbility();
+assert(warrior.isFireMode === true, "Especial Modo Fogo do Guerreiro continua funcionando 100%");
+
+let mage = new Player('mago');
+mage.mageCharge = 100;
+mage.triggerSpecialAbility();
+assert(shadowMinions.length === 2, "Especial Sombras do Mago continua funcionando 100%");
+
+let shooter = new Player('atirador');
+shooter.mechaCharge = 100;
+shooter.triggerSpecialAbility();
+assert(shooter.isMechaMode === true, "Especial Mecha Titan do Atirador continua funcionando 100%");
+
+let assassin = new Player('assassino');
+assassin.assassinCharge = 100;
+assassin.triggerSpecialAbility();
+assert(assassin.isThousandSlashes === true, "Especial 1000 Cortes do Assassino continua funcionando 100%");
+
+console.log(`\n=== RESULTADO DOS TESTES: ${passedTests}/${totalTests} PASSARAM ===`);
+if (passedTests === totalTests) {
+    console.log("🎉 TODOS OS TESTES PASSARAM COM SUCESSO ABSOLUTO!");
+} else {
+    process.exit(1);
+}
